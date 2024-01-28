@@ -3,3 +3,5 @@ poetry.lock
 not_git/
 
 .env
+
+.DS_Store
