@@ -1,0 +1,5 @@
+poetry.lock
+
+not_git/
+
+.env
