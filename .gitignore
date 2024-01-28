@@ -1,7 +1,6 @@
+.DS_Store
+.env
 poetry.lock
 
 not_git/
-
-.env
-
-.DS_Store
+historical_surgery_data/
