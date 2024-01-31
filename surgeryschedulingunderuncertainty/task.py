@@ -1,15 +1,11 @@
 
 
-from abc import ABC, abstractmethod
 
 
-
-#########
-# Task
 
 class Task():
 
-    def __init__(self, master_schedule, patients, num_of_weeks robustness_params, description = ""):
+    def __init__(self, master_schedule, patients, num_of_weeks, robustness_params, description = ""):
         self.description = description
         self.master_schedule = master_schedule
         self.patients = patients
@@ -65,35 +61,3 @@ class Task():
 
 
 
-#########
-# Uncertainty Profile
-
-class UncertaintyProfile(ABC):
-
-    def __init__(self):
-        pass
-
-
-
-class LogNormalDistribution(UncertaintyProfile):
-
-    def __init__(self, loc, scale):
-        self.loc = loc
-        self.scale = scale
-
-
-
-class NormalDistribution(UncertaintyProfile):
-
-    def __init__(self, loc, scale):
-        self.loc = loc
-        self.scale = scale
-
-
-
-
-class HistogramModel(UncertaintyProfile):
-
-    def __init__(self, loc, scale):
-        self.loc = loc
-        self.scale = scale

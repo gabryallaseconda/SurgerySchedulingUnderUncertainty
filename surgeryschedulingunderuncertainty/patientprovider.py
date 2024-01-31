@@ -35,7 +35,7 @@ class PatientProvider(ABC):
     
 
 
-class PatientFromDataProvider(PatientProvider):
+class PatientsFromHistoricalDataProvider(PatientProvider):
 
     def provide_patient(self, patient_model):
         pass
@@ -48,7 +48,7 @@ class PatientFromDataProvider(PatientProvider):
 
 
 
-class GeneratePatientsProvider(PatientProvider):
+class PatientsGeneratedProvider(PatientProvider):
 
     def provide_patient(self, patient_model):
         pass

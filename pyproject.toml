@@ -17,6 +17,7 @@ statsmodels = "^0.14.1"
 pyomo = "^6.7.0"
 highspy = "^1.5.3"
 python-dotenv = "^1.0.1"
+jupyter = "^1.0.0"
 
 
 [build-system]
