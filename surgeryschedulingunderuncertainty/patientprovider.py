@@ -5,16 +5,16 @@ from abc import ABC, abstractmethod
 class PatientProvider(ABC):
     
     def __init__(self, description = ""):
-        self.description = ""
+        self.description = description
 
-    @description.getter
-    def description(self):
-        return self.description
+    # Getters and setters
+    def get_description(self):
+        return self._description
     
-    @description.setter
-    def description(self, new_description):
-        self.description = new_description
+    def set_description(self, new_description):
+        self._description = new_description
     
+    description = property(get_description, set_description)
 
     @abstractmethod
     def provide_patient(self, patient_model):
@@ -36,6 +36,9 @@ class PatientProvider(ABC):
 
 
 class PatientsFromHistoricalDataProvider(PatientProvider):
+
+    def __init__(self, description = ""):
+        super().__init__(description)
 
     def provide_patient(self, patient_model):
         pass
