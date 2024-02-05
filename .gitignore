@@ -1,6 +1,0 @@
-.DS_Store
-.env
-poetry.lock
-
-not_git/
-historical_surgery_data/
