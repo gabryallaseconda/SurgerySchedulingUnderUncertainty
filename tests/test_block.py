@@ -4,6 +4,10 @@ from surgeryschedulingunderuncertainty.block import Block, MasterBlock#, Schedul
 
 class TestBlock(unittest.TestCase):
 
+    def test_block_arguments(self):
+        with self.assertRaises(TypeError):
+            Block()
+
     def setUp(self):
         self.block = Block(duration=60, equipes=['A', 'B'], weekday=1, order_in_day=1)
 
@@ -28,6 +32,10 @@ class TestBlock(unittest.TestCase):
         self.assertEqual(self.block.order_in_day, 2)
 
 class TestMasterBlock(unittest.TestCase):
+
+    def test_master_block_arguments(self):
+        with self.assertRaises(TypeError):
+            MasterBlock()
 
     def setUp(self):
         self.master_block = MasterBlock(duration=120, equipes=['A', 'B'], weekday=1, order_in_day=1, order_in_master=1)

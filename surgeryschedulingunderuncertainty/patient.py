@@ -1,6 +1,6 @@
 
 
-from uncertaintyprofile import UncertaintyProfile
+from surgeryschedulingunderuncertainty.uncertainty_profile import UncertaintyProfile
 
 class Patient():
 
