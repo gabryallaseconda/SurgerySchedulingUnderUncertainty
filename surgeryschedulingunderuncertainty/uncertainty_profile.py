@@ -24,8 +24,8 @@ class UncertaintyProfile(ABC):
 class LogNormalDistribution(UncertaintyProfile):
 
     def __init__(self, param_s, param_scale):
-        self.param_s = param_s
-        self.param_scale = param_scale
+        self._param_s = param_s
+        self._param_scale = param_scale
 
     # Getters and setters
         
@@ -60,8 +60,8 @@ class LogNormalDistribution(UncertaintyProfile):
         """
 
         # Rename just to make the term convenction clearer
-        mean = self.param_scale
-        std = self.param_s
+        mean = self._param_scale
+        std = self._param_s
 
         # Transform the parameters
         my_mu = np.log(mean**2/np.sqrt(mean**2 + std**2))
@@ -81,12 +81,11 @@ class LogNormalDistribution(UncertaintyProfile):
 class NormalDistribution(UncertaintyProfile):
 
     def __init__(self, param_loc, param_scale):
-        self.param_loc = param_loc
-        self.param_scale = param_scale
+        self._param_loc = param_loc
+        self._param_scale = param_scale
 
 
     # Getters and setters
-        
     def get_param_loc(self):
         return self._param_loc
     
@@ -106,9 +105,8 @@ class NormalDistribution(UncertaintyProfile):
 
 
     # Abstract methods implementation
-
     def sample(self, size):
-        return ss.norm.rvs(loc = self.param_loc, scale = self.param_scale, size = size)
+        return ss.norm.rvs(loc = self._param_loc, scale = self._param_scale, size = size)
 
 
 
@@ -116,6 +114,8 @@ class NormalDistribution(UncertaintyProfile):
 class HistogramModel(UncertaintyProfile):
 
     def __init__(self, values: list[float], probs: list[float]):
+        values = np.array(values)
+        probs = np.array(probs)
 
         # Check that values and probs are of the same lenght
         if not len(values) == len(probs):
@@ -134,17 +134,18 @@ class HistogramModel(UncertaintyProfile):
         probs  = probs[sorting_index]
 
         # Assigning
-        self.values = values
-        self.probs = probs
+        self._values = values
+        self._probs = probs
 
     # Getters and setters
     def get_values(self):
         return self._values
     
     def set_values(self, new:list[float]):
+        new = np.array(new)
 
         # Check that values and probs are of the same lenght
-        if not len(new) == len(self.probs):
+        if not len(new) == len(self._probs):
             raise ValueError("The values vector has not the same length of the probs, use set_values_and_probs to change both.")
 
         self._values = new
@@ -156,9 +157,10 @@ class HistogramModel(UncertaintyProfile):
         return self._probs
     
     def set_probs(self, new:list[float]):
+        new = np.array(new)
 
         # Check that values and probs are of the same lenght
-        if not len(new) == len(self.values):
+        if not len(new) == len(self._values):
             raise ValueError("The probs vector has not the same length of the values, use set_values_and_probs to change both.")
 
         # Check that the sum of probabilities is approximately one
@@ -173,6 +175,8 @@ class HistogramModel(UncertaintyProfile):
     probs = property(get_probs, set_probs)
 
     def set_values_and_probs(self, values:list[float], probs:list[float]):
+        values = np.array(values)
+        probs = np.array(probs)
         
         # Check that values and probs are of the same lenght
         if not len(values) == len(probs):
@@ -184,34 +188,33 @@ class HistogramModel(UncertaintyProfile):
         if not np.isclose(total_prob, 1.0, atol=tollerance):
             raise ValueError(f"The sum of probabilities is not one (tolerance={tollerance}).")
         
-        self.values = values
-        self.probs = probs
+        self._values = values
+        self._probs = probs
 
 
     # Abstract methods implementation
     def sample(self, size):
-        self.bin_sampling(size)
-        #return np.random.choice(self.values, size=size, p=self.probs)
-    
+        return self.bin_sampling(size)
+
+
     # Specific methods
     def pointwise_sampling(self, size):
-        np.random.choice(self.values, size=size, p=self.probs)
+        return np.random.choice(self._values, size=size, p=self._probs)
 
     def bin_sampling(self, size):
-        
         # Getting means between values
-        bins_extrema = (self.values[:-1] + self.values[1:]) / 2
+        bins_extrema = (self._values[:-1] + self._values[1:]) / 2
 
         # Compute weighted moments
-        weighted_mean = np.sum(self.values * self.probs)
-        weighted_variance = np.sum((self.values - weighted_mean)**2 * self.probs)
-        weighted_skewness = np.sum((self.values - weighted_mean)**3 * self.probs) / np.power(np.sqrt(weighted_variance), 3)
+        weighted_mean = np.sum(self._values * self._probs)
+        weighted_variance = np.sum((self._values - weighted_mean)**2 * self._probs)
+        weighted_skewness = np.sum((self._values - weighted_mean)**3 * self._probs) / np.power(np.sqrt(weighted_variance), 3)
 
         dist = ss.pearson3(weighted_skewness, loc=weighted_mean, scale=np.sqrt(weighted_variance))
 
-        bins_extrema = np.concatenate(([dist.ppf(self.probs[0]/4)], bins_extrema, [dist.ppf(1-self.probs[0]/4)]))
+        bins_extrema = np.concatenate(([dist.ppf(self._probs[0]/4)], bins_extrema, [dist.ppf(1-self._probs[0]/4)]))
 
-        selected_bin = np.random.choice(len(self.probs), p=self.probs)
+        selected_bin = np.random.choice(len(self._probs), p=self._probs)
 
         start = bins_extrema[selected_bin]
         end = bins_extrema[selected_bin+1]
@@ -221,11 +224,10 @@ class HistogramModel(UncertaintyProfile):
         return dist.rvs(size=size)
 
     def continuous_sampling(self, size):
-
         # Compute weighted moments
-        weighted_mean = np.sum(self.values * self.probs)
-        weighted_variance = np.sum((self.values - weighted_mean)**2 * self.probs)
-        weighted_skewness = np.sum((self.values - weighted_mean)**3 * self.probs) / np.power(np.sqrt(weighted_variance), 3)
+        weighted_mean = np.sum(self._values * self._probs)
+        weighted_variance = np.sum((self._values - weighted_mean)**2 * self._probs)
+        weighted_skewness = np.sum((self._values - weighted_mean)**3 * self._probs) / np.power(np.sqrt(weighted_variance), 3)
 
         dist = ss.pearson3(weighted_skewness, loc=weighted_mean, scale=np.sqrt(weighted_variance))
 
@@ -235,34 +237,39 @@ class HistogramModel(UncertaintyProfile):
 
 class BalancedHistogramModel(UncertaintyProfile):
 
-    def __init__(self, values: list[float]):
-        
-        self.profile = HistogramModel(values=values, probs=np.tile(1/len(values), len(values)))
-
-        self.values = values
-        self.prob = 1 / len(values)
+    def __init__(self, values: list[float]):        
+        self._profile = HistogramModel(values=values, probs=np.tile(1/len(values), len(values)))
 
     # Getters and setters
     def get_values(self):
-        return self.profile.get_values
+        return self._profile.get_values()
     
     def set_values(self, new:list[float]):
-        self.profile.set_values_and_probs(values = new, 
+        self._profile.set_values_and_probs(values = new, 
                                           probs = np.tile(1/len(new), len(new)))
     
     values = property(get_values, set_values)
 
+    def get_probs(self):
+        return self._profile.get_probs()
+    
+    def set_probs(self, new:list[float]):
+        self._profile.set_probs(new)
+
+    probs = property(get_probs, set_probs)
+
+    
     # Abstract methods implementation
     def sample(self, size):
-        return self.sample(size)
+        return self._profile.sample(size)
 
     # Specific methods
     def pointwise_sampling(self, size):
-        self.profile.pointwise_sampling(size)
+        return self._profile.pointwise_sampling(size)
 
     def bin_sampling(self, size):
-        self.profile.bin_sampling(size)
+        return self._profile.bin_sampling(size)
 
     def continuous_sampling(self, size):
-        self.profile.continuous_sampling(size)
+        return self._profile.continuous_sampling(size)
 

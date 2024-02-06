@@ -7,7 +7,7 @@ import os
 from abc import ABC, abstractmethod
 
 # Package for mathematical programming modelling
-import pyomo.environ as pyo
+
 
 
 class Optimizer(ABC):

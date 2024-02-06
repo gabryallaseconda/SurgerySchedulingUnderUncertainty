@@ -7,10 +7,10 @@ from abc import ABC, abstractmethod
 class Block(ABC):
     
     def __init__(self, duration: int, equipes: list[str], weekday: int, order_in_day: int):
-        self.duration = duration
-        self.equipes = equipes
-        self.weekday = weekday
-        self.order_in_day = order_in_day
+        self._duration = duration
+        self._equipes = equipes
+        self._weekday = weekday
+        self._order_in_dat = order_in_day
 
     # Getters and setters
     def get_duration(self):
@@ -52,7 +52,7 @@ class MasterBlock(Block):
 
     def __init__(self, duration: int, equipes: list[str], weekday: int, order_in_day: int, order_in_master: int):
         super().__init__(duration, equipes, weekday, order_in_day)
-        self.order_in_master = order_in_master
+        self._order_in_master = order_in_master
 
     def get_order_in_master(self):
         return self._order_in_master
@@ -69,9 +69,9 @@ class MasterBlock(Block):
 #     def __init__(self, duration: int, equipes: list[str], weekday: int, order_in_day: int, 
 #                  order_in_week: int, order_in_schedule: int, patients: list[Patient] = None):
 #         super().__init__(duration, equipes, weekday, order_in_day)
-#         self.order_in_week = order_in_week
-#         self.order_in_schedule = order_in_schedule
-#         self.patients = patients
+#         self._order_in_week = order_in_week
+#         self._order_in_schedule = order_in_schedule
+#         self._patients = patients
 
 #     # Getters and setters 
 
