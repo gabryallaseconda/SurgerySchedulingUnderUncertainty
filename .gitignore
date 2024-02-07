@@ -5,4 +5,8 @@ poetry.lock
 not_git/
 historical_surgery_data/
 surgeryschedulingunderuncertainty/__pycache__/
-tests/__pycacke__/
+tests/__pycache__/
+
+.vscode/
+.hypothesis
+.pytest_cache
