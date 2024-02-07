@@ -1,11 +1,11 @@
-
-# ABstract Classes
+# Python STL
 from abc import ABC, abstractmethod
 
-
-# NGBoost
+# Packages
 import ngboost as ngb
 import ngboost.distns as ng_dist
+
+# Modules
 
 
 
@@ -13,6 +13,10 @@ class PredictiveModel(ABC):
     
     def __init__(self):
         pass
+
+    # Getters and setters
+
+    # Abstract methods
 
     @abstractmethod
     def train(self, patients):

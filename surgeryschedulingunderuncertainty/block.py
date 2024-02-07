@@ -1,8 +1,9 @@
-
+# Python STL
 from abc import ABC, abstractmethod
 
-#from patient import Patient
+# Packages
 
+# Modules
 
 class Block(ABC):
     
@@ -53,6 +54,8 @@ class MasterBlock(Block):
     def __init__(self, duration: int, equipes: list[str], weekday: int, order_in_day: int, order_in_master: int):
         super().__init__(duration, equipes, weekday, order_in_day)
         self._order_in_master = order_in_master
+
+    # Getters and setters
 
     def get_order_in_master(self):
         return self._order_in_master

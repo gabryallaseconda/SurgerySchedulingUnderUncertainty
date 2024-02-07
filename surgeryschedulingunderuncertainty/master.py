@@ -2,8 +2,8 @@
 
 # Packages
 
-# Module's classes
-from block import MasterBlock
+# Modules
+from .block import MasterBlock
 
 class Master():
 
@@ -11,7 +11,7 @@ class Master():
         self.description = description
         self.blocks = blocks
 
-    # getters and setter
+    # Getters and setter
     def get_description(self):
         return self._description
     

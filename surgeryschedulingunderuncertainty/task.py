@@ -3,8 +3,8 @@
 # Packages
 
 # Module's classes
-from master import Master
-from patient import Patient
+from .master import Master
+from .patient import Patient
 
 
 class Task():
@@ -15,7 +15,7 @@ class Task():
                  num_of_patients: int,
                  robustness_risk: float,
                  robustness_overtime: int, 
-                 patients:list(Patient) = None,
+                 patients:list[Patient] = None,
                  master_schedule: Master = None):
         
         self._name = name
@@ -58,7 +58,7 @@ class Task():
     def get_patients(self):
         return self._patients
     
-    def set_patients(self, new:list(Patient)):
+    def set_patients(self, new:list[Patient]):
         if len(new) != self._num_of_patients:
             raise ValueError("The length of the list of patients provided does not match the task's number of patients.")
         self._patients = new

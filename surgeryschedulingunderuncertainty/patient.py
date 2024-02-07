@@ -3,8 +3,8 @@
 # Packages
 import numpy as np
 
-# Module's classes
-from surgeryschedulingunderuncertainty.uncertainty_profile import UncertaintyProfile
+# Modules
+from .uncertainty_profile import UncertaintyProfile
 
 class Patient():
 

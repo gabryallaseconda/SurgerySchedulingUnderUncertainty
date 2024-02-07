@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 # Packages
 
-# Module's classes
+# Modules
 
 
 
@@ -11,3 +11,6 @@ class Schedule(ABC):
 
     def __init__(self):
         pass
+
+
+    # Getters and setters

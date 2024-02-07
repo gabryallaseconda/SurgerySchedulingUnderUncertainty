@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 
-# Module's classes
-from task import Task
+# Modules
+from .task import Task
 
 
 class PatientsProvider(ABC):
@@ -45,7 +45,7 @@ class PatientsProvider(ABC):
     def provide_patient_training(self, patient_model, num):
         pass
 
-    # 
+    # General methods
     def provide_sets(self, patient_model, num_patients, num_training):
         return (self.provide_patient_set(patient_model=patient_model, num=num_patients), 
                 self.provide_patient_training(patient_model=patient_model, num = num_training))
@@ -101,7 +101,7 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
     equipe_proportion = property(get_equipe_proportion, set_equipe_proportion)
 
 
-
+    # Abstract methods implementation
 
     def provide_patient(self, patient_model):
         pass
@@ -115,6 +115,8 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
 
 
 class PatientsGeneratedProvider(PatientsProvider):
+
+    # Abstract methods implementation
 
     def provide_patient(self, patient_model):
         pass

@@ -62,7 +62,7 @@ class Implementor(ABC):
 
     # Abstract methods
 
-    # Common methods
+    # General methods
     def run(self): #!!!!!
         # Instance creation
         self._instance = self.model.create_instance(self.instance_data)

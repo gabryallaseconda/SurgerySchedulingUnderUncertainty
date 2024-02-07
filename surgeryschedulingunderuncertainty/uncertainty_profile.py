@@ -6,8 +6,7 @@ import random
 import numpy as np
 import scipy.stats as ss
 
-# Module's classes
-#
+# Modules
 
 
 class UncertaintyProfile(ABC):
@@ -15,6 +14,7 @@ class UncertaintyProfile(ABC):
     def __init__(self):
         pass
 
+    # Abstract methods
     @abstractmethod
     def sample(self, size):
         pass

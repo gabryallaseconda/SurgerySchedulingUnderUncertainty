@@ -1,15 +1,13 @@
 # Python STL
 from abc import ABC, abstractmethod
-import os 
 
 # Packages
 
-
-# Module's classes
-from implementor import Implementor
-from adversary import Adversary
-from task import Task
-from predictive_model import PredictiveModel
+# Modules
+from .implementor import Implementor
+from .adversary import Adversary
+from .task import Task
+from .predictive_model import PredictiveModel
 
 
 
@@ -22,7 +20,6 @@ class Optimizer(ABC):
         #self.schedule = None
 
     # Getters and setters
-        
     def get_task(self):
         return self._task
     
@@ -39,7 +36,7 @@ class Optimizer(ABC):
     
     description = property(get_description, set_description)
 
-
+    # Abstract methods
     @abstractmethod
     def run():
         pass
@@ -57,13 +54,13 @@ class ImplementorAdversary(Optimizer):
 
         self._instance_data = None
 
-
+    # Getters and setters
 
     def set_adversary_predictor(self, predictor:PredictiveModel):
         self._adversary.predictor = predictor
         return True
 
-
+    # Abstract methods implementation
     def run(self, max_loops:int):
 
         # Main implementor adversary loop
@@ -85,7 +82,7 @@ class ImplementorAdversary(Optimizer):
         
         #return schedule
 
-
+    # Specific methods
     def create_instance_data(self):
         pass
 

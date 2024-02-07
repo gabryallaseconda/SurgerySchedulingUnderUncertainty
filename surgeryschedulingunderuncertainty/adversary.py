@@ -3,9 +3,9 @@ from abc import ABC, abstractmethod
 
 # Packages
 
-# Module's classes
-from predictive_model import PredictiveModel
-from schedule import Schedule
+# Modules
+from .predictive_model import PredictiveModel
+from .schedule import Schedule
 
 
 class Adversary(ABC): 
@@ -15,7 +15,7 @@ class Adversary(ABC):
         self._predictor = predictor
         self._schedule = schedule
         
-    # Getters and setter
+    # Getters and setters
     def get_description(self):
         return self._description
     
