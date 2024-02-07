@@ -39,23 +39,19 @@ def YVarDefRule(self, i): # Y variable definition
 class Implementor(ABC):
     
     def __init__(self, instance_data, description = ""):
-        self.instance_data = instance_data
-        self.description = description
-        
-        # Pyomo Abstract Model
-        self.model = pyo.AbstractModel()
+        self._description = description
+        self._instance_data = instance_data
+        self._model = pyo.AbstractModel() # pyomo abstract model
 
     # Getters and setters
-        
-    def get_schedule(self):
-        return self._schedule
+    def get_description(self):
+        return self._description
     
-    def set_schedule(self, new):
-        self.schedule = new
+    def set_description(self, new):
+        self._description = new
 
-    schedule = property(get_schedule, set_schedule)
+    description = property(get_description, set_description)
     
-
     def get_instance_data(self):
         return self._instance_data
     
@@ -69,29 +65,31 @@ class Implementor(ABC):
     # Common methods
     def run(self): #!!!!!
         # Instance creation
-        self.instance = self.model.create_instance(self.instance_data)
+        self._instance = self.model.create_instance(self.instance_data)
 
         # Solver configuration
-        solver = pyo.SolverFactory('appsi_highs')
-
+        self._solver = pyo.SolverFactory('appsi_highs')
         #solver.options['Threads'] = config['SOLVER']['SolverThreads']
         #solver.options['TimeLimit'] = config['SOLVER']['SolverTimeLimit']
         #solver.options['MIPGap'] = config['SOLVER']['SolverMIPGap']
 
-        #TODO questo path andrebbe dedotto, non hard-coded
-        path = '/Users/gabrielegabrielli/Library/CloudStorage/OneDrive-PolitecnicodiMilano/PoliMi/Tesi/PianificazioneRobustaInterventiChirurgici REAL/output_data/'
-        filename = 'highs_log_' + instance_name + '.txt' #.replace(',','').replace(' ','').replace('(','').replace(')','').replace('.','')
-        solver.options['LogFile'] = path + filename
-
         # Solver launching
-        solver_result = solver.solve(self.instance, tee=False)  # sicuri che qua servono tutti e due?
+        solver_result = self._solver.solve(self._instance, tee=False)
         
         # Saving data of the solution
-        self.instance.solutions.store_to(solver_result)
+        self._instance.solutions.store_to(solver_result)
 
-        return self.instance # questa adrebbe processata dentro una schedula prima di procedere
+        return self._instance # questa adrebbe processata dentro una schedula prima di procedere
     
+        """
+        #TODO questo path andrebbe dedotto, non hard-coded
+        path = '/Users/gabrielegabrielli/Library/CloudStorage/OneDrive-PolitecnicodiMilano/PoliMi/Tesi/PianificazioneRobustaInterventiChirurgici REAL/output_data/'
+        instance_name = 'this for no erro'
+        filename = 'highs_log_' + instance_name + '.txt' #.replace(',','').replace(' ','').replace('(','').replace(')','').replace('.','')
+        solver.options['LogFile'] = path + filename
+        """
     
+
 
 class StandardImplementor():
 

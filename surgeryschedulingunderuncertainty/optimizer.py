@@ -1,41 +1,44 @@
-
-from dotenv import load_dotenv
-load_dotenv()
+# Python STL
+from abc import ABC, abstractmethod
 import os 
 
-# ABstract Classes
-from abc import ABC, abstractmethod
+# Packages
 
-# Package for mathematical programming modelling
+
+# Module's classes
+from implementor import Implementor
+from adversary import Adversary
+from task import Task
+from predictive_model import PredictiveModel
 
 
 
 class Optimizer(ABC):
     
     def __init__(self, task, description = ""):
-        self.tast = task
-        self.description = ""
+        self._tast = task
+        self._description = ""
 
-        self.schedule = None
+        #self.schedule = None
 
+    # Getters and setters
+        
+    def get_task(self):
+        return self._task
+    
+    def set_task(self, new:float):
+        self._task = new
+    
+    task = property(get_task, set_task)
 
-    @task.getter
-    def task(self):
-        return self.task
+    def get_description(self):
+        return self._description
     
-    @task.setter
-    def task(self, new_task):
-        self.task = new_task
+    def set_description(self, new:float):
+        self._description = new
+    
+    description = property(get_description, set_description)
 
-    
-    @description.getter
-    def description(self):
-        return self.description
-    
-    @description.setter
-    def description(self, new_description):
-        self.description = new_description
-    
 
     @abstractmethod
     def run():
@@ -43,37 +46,33 @@ class Optimizer(ABC):
     
 
 
-####################
-#### Optimizer: implementor adversary
+class ImplementorAdversary(Optimizer):
 
-class ImplementorAdversary(PatientProvider):
-
-    def __init__(self, task, implementor, adversary, description = ""):
+    def __init__(self, task:Task, implementor: Implementor, adversary: Adversary, description = ""):
 
         super().__init__(task, description)
         
-        self.implementor = implementor
-        self.adversary = adversary
+        self._implementor = implementor
+        self._adversary = adversary
 
-        self.instance_data = None
+        self._instance_data = None
 
 
 
-    def set_adversary_predictor(self, predictor):
-        self.adversary.predictor = predictor
+    def set_adversary_predictor(self, predictor:PredictiveModel):
+        self._adversary.predictor = predictor
         return True
 
 
-    def run(self, max_loops = 0):
-        # Setting the number of max loops. If not setted then load it from environment variable.
-        if max_loops == 0:
-            max_loops = os.environ.get("MAXIMUM_IMPLEMENTOR_ADVERSARY_LOOPS")
+    def run(self, max_loops:int):
 
         # Main implementor adversary loop
         for loop in range(max_loops):
             flag = False
 
             # call implementor
+
+            
 
 
             # call adversary
@@ -106,32 +105,3 @@ class ImplementorAdversary(PatientProvider):
 
 
 
-def Adversary(ABC): # da completare
-    def __init__(self, predictor, schedule, description = ""):
-        self.predictor = predictor
-        self.schedule = schedule
-        self.description = description
-        
-
-    @schedule.getter
-    def schedule(self):
-        return self.schedule
-    
-    @schedule.setter
-    def schedule(self, new_schedule):
-        self.schedule = new_schedule
-    
-
-    @instance_data.getter
-    def instance_data(self):
-        return self.instance_data
-    
-    @instance_data.setter
-    def instance_data(self, new_instance_data):
-        self.instance_data = new_instance_data
-
-
-    @abstractmethod
-    def run(self):
-        pass
-    
