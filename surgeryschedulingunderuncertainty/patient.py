@@ -8,7 +8,14 @@ from .uncertainty_profile import UncertaintyProfile
 
 class Patient():
 
-    def __init__(self, id: int, features: np.ndarray, target: float, uncertainty_profile: UncertaintyProfile, equipe: str, urgency: int):
+    def __init__(self, 
+                 id: int, 
+                 equipe: str, 
+                 urgency: int,
+                 features: np.ndarray = None, 
+                 target: float = None, 
+                 uncertainty_profile: UncertaintyProfile = None):
+        
         self._id = id
         self._features = features
         self._target = target

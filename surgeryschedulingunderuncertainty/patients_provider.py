@@ -1,11 +1,14 @@
 # Python STL
 from abc import ABC, abstractmethod
+import random
 
 # Packages
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
 # Modules
+from .patient import Patient
 from .task import Task
 
 
@@ -64,13 +67,14 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
         
         self._historical_data = historical_data
         self._equipe_proportion = equipe_proportion
+        
+        self._sampled_indexes = set()
+        self._patient_id_start_number = 0
 
         ## One hot encoding of categorical features
 
         # Select columns containing categorical data  (object type)
         categorical_columns = self._historical_data.select_dtypes(include=['object']).columns
-        # Exclude equipe columns
-        categorical_columns = categorical_columns.difference(['equipe'])
         # Instantiate one - hot- tencoder
         encoder = OneHotEncoder( drop='first')
         # Run the one - hot - encoder
@@ -79,6 +83,8 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
         one_hot_encoded_df = pd.DataFrame(one_hot_encoded.toarray(), columns=encoder.get_feature_names_out(categorical_columns))
         # Concatenatign with original dataframe
         df = pd.concat([self._historical_data, one_hot_encoded_df], axis=1)
+        # Exclude equipe columns
+        categorical_columns = categorical_columns.difference(['equipe'])
         # Removing encoded columns
         self._historical_data = df.drop(columns=categorical_columns)
 
@@ -103,14 +109,42 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
 
     # Abstract methods implementation
 
-    def provide_patient(self, patient_model):
-        pass
+    def provide_patient(self) -> Patient:
+        # da aggiungere se vuole particolare equipe o particolare urgency!
+
+        available_indexes = [ x for x in list(self._historical_data.index) if x not in self._sampled_indexes]
+        patient_index = random.choice(available_indexes)
+        self._sampled_indexes.add(patient_index)
+
+        id = patient_index + self._patient_id_start_number
+        features = np.array(self._historical_data.loc[patient_index, ~self._historical_data.columns.isin(['equipe', 'target', 'urgency'])])
+        
+        target = self._historical_data.loc[patient_index, ~self._historical_data.columns.isin(['target'])]
+        equipe = self._historical_data.loc[patient_index, ~self._historical_data.columns.isin(['equipe'])]
+        urgency = self._historical_data.loc[patient_index, ~self._historical_data.columns.isin(['urgency'])]
+
+        return Patient(id=id,equipe=equipe, urgency=urgency, features=features, target=target, uncertainty_profile=None)
+
 
     def provide_patient_set(self, patient_model, num):
         pass
 
     def provide_patient_training(self, patient_model, num):
         pass
+
+    # Specific methods
+
+    def reset_sampled_indexes(self, enforce = False):
+        """_summary_
+        Quando chiamata, se forzata o se tutti i pazienti sono stati estratti, si resetta il contenitore
+        degli indici già estratti.
+        Args:
+            enforce (bool, optional): _description_. Defaults to False.
+        """
+        if enforce | (len(self._historical_data.index) == self._sampled_indexes):
+            print("Warning: from now on patients can be resampled.")
+            self._sampled_indexes = set()
+            self._patient_id_start_number += len(self._historical_data) # aggiungo righe su id
 
 
 
