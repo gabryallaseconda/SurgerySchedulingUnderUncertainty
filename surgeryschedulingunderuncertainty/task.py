@@ -1,63 +1,76 @@
+# Python STL
 
+# Packages
 
-
+# Module's classes
+from master import Master
+from patient import Patient
 
 
 class Task():
 
-    def __init__(self, master_schedule, patients, num_of_weeks, robustness_params, description = ""):
-        self.description = description
-        self.master_schedule = master_schedule
-        self.patients = patients
-        self.num_of_weeks = num_of_weeks
-        self.robustness_params = robustness_params
-
-    @description.getter
-    def description(self):
-        return self.description
+    def __init__(self, 
+                 name: str,
+                 num_of_weeks: int, 
+                 num_of_patients: int,
+                 robustness_risk: float,
+                 robustness_overtime: int, 
+                 patients:list(Patient) = None,
+                 master_schedule: Master = None):
+        
+        self._name = name
+        self._num_of_weeks = num_of_weeks
+        self._num_of_patients = num_of_patients
+        self._robustness_risk = robustness_risk
+        self._robustness_overtime = robustness_overtime
+        self._patients = patients
+        self._master_schedule = master_schedule
+        
+    # Getters and setters
+    def get_name(self):
+        return self._name
     
-    @description.setter
-    def description(self, new_description):
-        self.description = new_description
-
-
-    @master_schedule.getter
-    def master_schedule(self):
-        return self.master_schedule
+    def set_name(self, new:str):
+        self._name = new
     
-    @master_schedule.setter
-    def master_schedule(self, new_master_schedule):
-        self.master_schedule = new_master_schedule
+    name = property(get_name, set_name)
 
-
-    @patients.getter
-    def patients(self):
-        return self.patients
+    def get_num_of_weeks(self):
+        return self._num_of_weeks
     
-    @patients.setter
-    def patients(self, new_patients):
-        self.patients = new_patients
+    num_of_weeks = property(get_num_of_weeks)
 
-
-    @num_of_weeks.getter
-    def num_of_weeks(self):
-        return self.num_of_weeks
+    def get_num_of_patients(self):
+        return self._num_of_patients
     
-    @num_of_weeks.setter
-    def num_of_weeks(self, new_num_of_weeks):
-        self.num_of_weeks = new_num_of_weeks
+    num_of_patients = property(get_num_of_patients)
 
-
-    @robustness_params.getter
-    def robustness_params(self):
-        return self.robustness_params
+    def get_robustness_risk(self):
+        return self._robustness_risk
     
-    @patients.setter
-    def robustness_params(self, new_robustness_params):
-        self.robustness_params = new_robustness_params
-      
+    robustness_risk = property(get_robustness_risk)
 
+    def get_robustness_overtime(self):
+        return self._robustness_overtime
+    
+    robustness_overtime = property(get_robustness_overtime)
 
+    def get_patients(self):
+        return self._patients
+    
+    def set_patients(self, new:list(Patient)):
+        if len(new) != self._num_of_patients:
+            raise ValueError("The length of the list of patients provided does not match the task's number of patients.")
+        self._patients = new
+    
+    patients = property(get_patients, set_patients)
 
+    def get_master_schedule(self):
+        return self._master_schedule
+    
+    def set_master_schedule(self, new:Master):
+        self._master_schedule = new
+    
+    master_schedule = property(get_master_schedule, set_master_schedule)
 
 

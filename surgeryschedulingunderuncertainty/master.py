@@ -1,5 +1,8 @@
+# Python STL
 
+# Packages
 
+# Module's classes
 from block import MasterBlock
 
 class Master():
@@ -16,7 +19,7 @@ class Master():
         self._description = new
     
     description = property(get_description, set_description)
-        
+
     def get_blocks(self):
         return self._blocks
     
