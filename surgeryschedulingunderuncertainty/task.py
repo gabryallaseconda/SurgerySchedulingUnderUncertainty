@@ -14,18 +14,33 @@ class Task():
                  num_of_weeks: int, 
                  num_of_patients: int,
                  robustness_risk: float,
-                 robustness_overtime: int, 
+                 robustness_overtime: int,
+                 urgency_to_max_waiting_time: dict, 
                  patients:list[Patient] = None,
-                 master_schedule: Master = None):
+                 master_schedule: Master = None,
+                 ):
         
         self._name = name
         self._num_of_weeks = num_of_weeks
         self._num_of_patients = num_of_patients
         self._robustness_risk = robustness_risk
         self._robustness_overtime = robustness_overtime
+        self._urgency_to_max_waiting_time = urgency_to_max_waiting_time
         self._patients = patients
         self._master_schedule = master_schedule
         
+        ## From urgency to max waiting time getting mapping for urgency grades
+
+        # Get original keys and sorted
+        ordered_keys = sorted(self._urgency_to_max_waiting_time.keys())
+        # Getting respective values
+        values = [self._urgency_to_max_waiting_time[key] for key in ordered_keys]
+        # Inverting the value list
+        inverted_values = values[::-1]
+        # Creating the new mapping dictionary
+        self._urgency_to_urgecy_grades = dict(zip(ordered_keys, inverted_values))
+
+
     # Getters and setters
     def get_name(self):
         return self._name

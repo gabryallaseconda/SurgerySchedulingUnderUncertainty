@@ -13,6 +13,28 @@ from .task import Task
 
 
 class PatientsProvider(ABC):
+    """
+    Abstract class for patients providers. Patients providers are object which
+    generates patient. They can process dataset and extract a patient for each line
+    or they can generate patients with random process. These different ways are
+    implemented in different concrete classes. Generation can be driven by asking 
+    for specific kind of patients, in particular specifing the equipe or the 
+    urgency. Patients providers also can generate patients for the training of 
+    predictive models.
+
+    Attributes
+    ----------
+    _task : Task
+        Task contains the problem specifications.
+    _description : str
+        To keep a text description of the provider created.
+
+    Methods
+    -------
+    provide_patient(self, requested_equipe:str = None, requested_urgency:int = None) -> Patient:
+        Provide a single patient, can specify equpe and urgency
+    """
+
     
     def __init__(self, task:Task, description = ""):
         self._description = description
@@ -37,8 +59,9 @@ class PatientsProvider(ABC):
 
     # Abstract methods
     @abstractmethod
-    def provide_patient(self, patient_model):
+    def provide_patient(self, requested_equipe:str = None, requested_urgency:int = None) -> Patient:
         pass
+
 
     @abstractmethod
     def provide_patient_set(self, patient_model, num):
@@ -56,17 +79,58 @@ class PatientsProvider(ABC):
 
 
 class PatientsFromHistoricalDataProvider(PatientsProvider):
+    """
+    Inherit from abstract class PatientsProvider
+    Class for a patients provider that extract patients from a dataset of already
+    processed patients. In general this kind of patients can be used for test purposes
+    or to train the predictive models. The Dataset must contain some columns with the 
+    following names:
+     - target (float): the true surgery time.
+     - equipe (str): which equipe have processed the patient.
+     - urgency (int): urgency grade required. Urgency grades are converted as 
+       specified in the task object.
+     - other columns: will be treated as "features" for predicting the surgery time.
+       Numerical columns are preserved, categorical are encoded through one-hot-encoding.
+    
+    Attributes
+    ----------
+    _task : Task
+        Task contains the problem specifications.
+    _description : str
+        To keep a text description of the provider created.
+    _historical_data: pd.DataFrame
+        Is the pandas' dataframe which provide patients' data.
+    _sampled_indexes: set
+        Keep track of rows already used from the dataset.
+    _patient_id_start_number: int
+        When all rows are used, the function restart sampling including already used rows.
+        This variable allow to generate patients with different ids. 
+
+    Methods
+    -------
+    provide_patient(self, requested_equipe:str = None, requested_urgency:int = None) -> Patient:
+        Provide a single patient, can specify equpe and urgency
+    """
 
     def __init__(self, 
                  task:Task, 
                  historical_data: pd.DataFrame, 
-                 equipe_proportion: dict = None,
                  description = ""):
-        
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        _task : Task
+            Task contains the problem specifications.
+        _description : str, optional
+            To keep a text description of the provider created.
+        _historical_data: pd.DataFrame
+            Is the pandas' dataframe which provide patients' data.
+        """
         super().__init__(task, description)
         
         self._historical_data = historical_data
-        self._equipe_proportion = equipe_proportion
         
         self._sampled_indexes = set()
         self._patient_id_start_number = 0
@@ -98,21 +162,44 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
     
     historical_data = property(get_historical_data, set_historical_data)
 
-    def get_equipe_proportion(self):
-        return self._equipe_proportion
-    
-    def set_equipe_proportion(self, new:dict):
-        self._equipe_proportion = new
-    
-    equipe_proportion = property(get_equipe_proportion, set_equipe_proportion)
-
 
     # Abstract methods implementation
 
-    def provide_patient(self) -> Patient:
-        # da aggiungere se vuole particolare equipe o particolare urgency!
+    def provide_patient(self, requested_equipe:str = None, requested_urgency:int = None) -> Patient:
 
-        available_indexes = [ x for x in list(self._historical_data.index) if x not in self._sampled_indexes]
+        """
+        Provide a single patient. Can request an equipe and/or an urgency.
+
+        Parameters
+        ----------
+        requested_equipe: str, optional
+            The equipe which will process the patient provided.
+
+        requested_urgency: int, optional
+            The urgency grade assigned to the patient.
+
+        Returns
+        -------
+        Patient
+            A patient object filled with information in the dataset.
+        """
+
+
+        if (requested_equipe != None) & (requested_equipe != None):
+            filtered_data = self._historical_data.loc[
+                (self._historical_data['equipe'] == requested_equipe) &
+                (self._historical_data['urgency'] == requested_urgency)
+            ]
+        elif requested_equipe != None:
+            filtered_data = self._historical_data.loc[
+                (self._historical_data['equipe'] == requested_equipe)
+            ]
+        elif requested_urgency != None:
+            filtered_data = self._historical_data.loc[
+                (self._historical_data['urgency'] == requested_urgency)
+            ]
+
+        available_indexes = [ x for x in list(filtered_data.index) if x not in self._sampled_indexes]
         patient_index = random.choice(available_indexes)
         self._sampled_indexes.add(patient_index)
 
