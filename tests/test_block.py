@@ -1,6 +1,12 @@
+# Python STL
 import unittest
+
+# Packages
+
+# Modules
+
+# Objects of test
 from surgeryschedulingunderuncertainty.block import Block, MasterBlock#, ScheduleBlock
-#from surgeryschedulingunderuncertainty.patient import Patient
 
 class TestBlock(unittest.TestCase):
 

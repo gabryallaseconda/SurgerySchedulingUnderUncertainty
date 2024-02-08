@@ -11,7 +11,7 @@ class Block(ABC):
         self._duration = duration
         self._equipes = equipes
         self._weekday = weekday
-        self._order_in_dat = order_in_day
+        self._order_in_day = order_in_day
 
     # Getters and setters
     def get_duration(self):

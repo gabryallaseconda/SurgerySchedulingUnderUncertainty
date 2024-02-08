@@ -6,7 +6,9 @@ from unittest.mock import patch
 from hypothesis import given, strategies as st
 import numpy as np
 
-# Module's classes
+# Modules
+
+# Objects of test
 from surgeryschedulingunderuncertainty.uncertainty_profile import (
     LogNormalDistribution,
     NormalDistribution,

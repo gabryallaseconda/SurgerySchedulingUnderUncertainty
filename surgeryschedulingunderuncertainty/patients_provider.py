@@ -94,9 +94,9 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
     
     Attributes
     ----------
-    _task : Task
+    _task: Task
         Task contains the problem specifications.
-    _description : str
+    _description: str
         To keep a text description of the provider created.
     _historical_data: pd.DataFrame
         Is the pandas' dataframe which provide patients' data.
