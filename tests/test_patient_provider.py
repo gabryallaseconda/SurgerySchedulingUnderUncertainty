@@ -5,6 +5,7 @@ from unittest.mock import patch
 # Packages
 from hypothesis import given, strategies as st
 import numpy as np
+import pandas as pd
 
 # Modules
 from surgeryschedulingunderuncertainty.patient import Patient
@@ -20,12 +21,29 @@ from surgeryschedulingunderuncertainty.patients_provider import (
 
 class TestPatientsFromHistoricalDataProvider(unittest.TestCase):
     
-    def test_log_normal_distribution_arguments(self):
+    def test_patients_form_historical_data_provider_arguments(self):
+        """ If instantiatd without argument, raise error. """
         with self.assertRaises(TypeError):
             PatientsFromHistoricalDataProvider()
 
     def setUp(self):
-        self.uncertaintyprofile = LogNormalDistribution(param_s=1, param_scale=1)
+        task1 = Task(
+            name="Test task 1",
+            num_of_weeks= 2,
+            num_of_patients= 4,
+            robustness_risk= 0.2,
+            robustness_overtime= 10,
+            urgency_to_max_waiting_time={0:60, 1:30, 2:15}
+            )
+        
+        historical_data = pd.read_csv('data/historical_data.csv')
+
+        self.patientprovider = PatientsFromHistoricalDataProvider(
+            task = task1,
+            historical_data = 
+            description = "Test patients from historical data provider"
+        )
+
 
     @patch('scipy.stats.norm.rvs')
     def test_log_normal_distribution_sample_mock(self, mock_obj):

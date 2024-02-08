@@ -6,6 +6,7 @@ poetry.lock
 .pytest_cache
 
 not_git/
+data/
 historical_surgery_data/
 surgeryschedulingunderuncertainty/__pycache__/
 tests/__pycache__/
