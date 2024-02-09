@@ -62,19 +62,32 @@ class PatientsProvider(ABC):
     def provide_patient(self, requested_equipe:str = None, requested_urgency:int = None) -> Patient:
         pass
 
-
     @abstractmethod
-    def provide_patient_set(self, patient_model, num):
+    def provide_patients(self, 
+                         quantity: int, 
+                         equipe_profile:dict = None, 
+                         urgency_profile:dict = None, 
+                         include_target: bool = True) -> list[Patient]:
         pass
 
     @abstractmethod
-    def provide_patient_training(self, patient_model, num):
+    def provide_patient_set(self, 
+                            quantity: int, 
+                            equipe_profile:dict = None, 
+                            urgency_profile:dict = None) -> list[Patient]:
+        pass
+
+    @abstractmethod
+    def provide_patient_training(self, 
+                                 quantity: int, 
+                                 equipe_profile:dict = None, 
+                                 urgency_profile:dict = None) -> list[Patient]:
         pass
 
     # General methods
-    def provide_sets(self, patient_model, num_patients, num_training):
-        return (self.provide_patient_set(patient_model=patient_model, num=num_patients), 
-                self.provide_patient_training(patient_model=patient_model, num = num_training))
+    def provide_sets(self, quantity, quantity_training, equipe_profile, urgency_profile):
+        return (self.provide_patient_set(quantity=quantity, equipe_profile=equipe_profile, urgency_profile=urgency_profile), 
+                self.provide_patient_training(quantity=quantity_training, equipe_profile=equipe_profile, urgency_profile=urgency_profile))
     
 
 
@@ -165,7 +178,7 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
 
     # Abstract methods implementation
 
-    def provide_patient(self, requested_equipe:str = None, requested_urgency:int = None) -> Patient:
+    def provide_patient(self, requested_equipe:str = None, requested_urgency:int = None, include_target: bool = True) -> Patient:
 
         """
         Provide a single patient. Can request an equipe and/or an urgency.
@@ -184,7 +197,6 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
             A patient object filled with information in the dataset.
         """
 
-
         if (requested_equipe != None) & (requested_equipe != None):
             filtered_data = self._historical_data.loc[
                 (self._historical_data['equipe'] == requested_equipe) &
@@ -198,6 +210,7 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
             filtered_data = self._historical_data.loc[
                 (self._historical_data['urgency'] == requested_urgency)
             ]
+        else: filtered_data = self._historical_data
 
         available_indexes = [ x for x in list(filtered_data.index) if x not in self._sampled_indexes]
         patient_index = random.choice(available_indexes)
@@ -206,18 +219,79 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
         id = patient_index + self._patient_id_start_number
         features = np.array(self._historical_data.loc[patient_index, ~self._historical_data.columns.isin(['equipe', 'target', 'urgency'])])
         
-        target = self._historical_data.loc[patient_index, ~self._historical_data.columns.isin(['target'])]
-        equipe = self._historical_data.loc[patient_index, ~self._historical_data.columns.isin(['equipe'])]
-        urgency = self._historical_data.loc[patient_index, ~self._historical_data.columns.isin(['urgency'])]
+        if include_target:
+            target = self._historical_data.loc[patient_index, 'target']
+        else:
+            target = None
+        
+        equipe = self._historical_data.loc[patient_index, 'equipe']
+        urgency = self._historical_data.loc[patient_index, 'urgency']
 
         return Patient(id=id,equipe=equipe, urgency=urgency, features=features, target=target, uncertainty_profile=None)
+    
+
+    def provide_patients(self, 
+                         quantity: int, 
+                         equipe_profile:dict = None, 
+                         urgency_profile:dict = None, 
+                         include_target: bool = True) -> list[Patient]:
+        
+        tollerance = 1e-6
+
+        if equipe_profile:
+            equipes = np.array(list(equipe_profile.keys()))
+            equipes_prob = np.array(list(equipe_profile.values()))
+            
+            if not np.isclose(sum(equipes_prob), 1.0, atol=tollerance):
+                raise ValueError(f"The sum of probabilities for equipe is not one (tolerance={tollerance}).")
+
+        if urgency_profile:
+            urgencies = np.array(list(urgency_profile.keys()))
+            urgencies_prob = np.array(list(urgency_profile.keys()))
+            
+            if not np.isclose(sum(urgencies_prob), 1.0, atol=tollerance):
+                raise ValueError(f"The sum of probabilities for urgency is not one (tolerance={tollerance}).")
+            
+        patient_list = []    
+
+        for i in range(quantity):
+            if equipe_profile:
+                equipe = np.random.choice(equipes, p=equipes_prob)
+            else:
+                equipe = None
+
+            if urgency_profile:
+                urgency = np.random.choice(urgencies, p=urgencies_prob)
+            else:
+                urgency = None
+
+            patient_list.append(self.provide_patient(requested_equipe = equipe, 
+                                       requested_urgency = urgency, 
+                                       include_target = include_target))
+            
+        return patient_list
 
 
-    def provide_patient_set(self, patient_model, num):
-        pass
+    def provide_patient_set(self, 
+                            quantity: int, 
+                            equipe_profile:dict = None, 
+                            urgency_profile:dict = None) -> list[Patient]:
+        
+        return self.provide_patients(quantity = quantity, 
+                                     equipe_profile = equipe_profile, 
+                                     urgency_profile = urgency_profile, 
+                                     include_target = False)
+        
 
-    def provide_patient_training(self, patient_model, num):
-        pass
+    def provide_patient_training(self, 
+                            quantity: int, 
+                            equipe_profile:dict = None, 
+                            urgency_profile:dict = None) -> list[Patient]:
+        
+        return self.provide_patients(quantity = quantity, 
+                                     equipe_profile = equipe_profile, 
+                                     urgency_profile = urgency_profile, 
+                                     include_target = True)
 
     # Specific methods
 

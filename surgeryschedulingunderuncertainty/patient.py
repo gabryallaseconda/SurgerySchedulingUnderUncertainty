@@ -23,6 +23,9 @@ class Patient():
         self._equipe = equipe
         self._urgency = urgency
 
+    def __str__(self):
+        return f'Patient id: {self.id} \n equipe: {self.equipe} \n urgency: {self.urgency}'
+
     # Getters and setters
     def get_id(self):
         return self._id

@@ -5,10 +5,13 @@ poetry.lock
 .hypothesis
 .pytest_cache
 
+
+**/__pycache__
+**/.ipynb_checkpoints/
+
 not_git/
 data/
 historical_surgery_data/
-surgeryschedulingunderuncertainty/__pycache__/
-tests/__pycache__/
+
 
 uml/.$*

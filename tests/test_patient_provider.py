@@ -40,7 +40,7 @@ class TestPatientsFromHistoricalDataProvider(unittest.TestCase):
 
         self.patientprovider = PatientsFromHistoricalDataProvider(
             task = task1,
-            historical_data = 
+            historical_data = historical_data,
             description = "Test patients from historical data provider"
         )
 
