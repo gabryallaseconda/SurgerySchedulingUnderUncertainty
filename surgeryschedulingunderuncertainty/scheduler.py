@@ -6,9 +6,11 @@ from pandas import pd
 
 # Modules
 from .adversary import ( Equiprobable)
-from .patient import Patient
-from .task import Task
 from .master import Master
+from .patient import Patient
+from .patients_provider import PatientsFromHistoricalDataProvider
+from .predictive_model import PredictiveModel
+from .task import Task
 
 
 class Scheduler():
@@ -18,6 +20,8 @@ class Scheduler():
                  num_of_patients: int,
                  robustness_risk: float,
                  robustness_overtime: int,
+                 num_patients_training: int,
+
                  master_scheduling: Master,# no questo va sistemato
 
                  patient_provider_type:str,
@@ -35,6 +39,8 @@ class Scheduler():
         _num_of_patients = num_of_patients
         _robustness_risk = robustness_risk
         _robustness_overtime = robustness_overtime
+        _num_patients_training = num_patients_training
+
         _master_scheduling = master_scheduling # questo va sistemato
 
         _patient_provider_type = patient_provider_type
@@ -48,20 +54,18 @@ class Scheduler():
 
     def run(self):
 
-        task = Task(name = "My first problem",
-            num_of_weeks= 2,
-            num_of_patients= 300,
-            robustness_risk= 0.2,
-            robustness_overtime= 0.9,
-            urgency_to_max_waiting_time= {0: 7, 1:30, 2:60, 3:180, 4:360}, 
-            )
-        
-        
-        historical_data_df = pd.read_csv("../data/historical_data.csv")
-
-        patient_provider = PatientsFromHistoricalDataProvider(task = task, 
+        patient_provider = PatientsFromHistoricalDataProvider(
                         historical_data= historical_data_df
                         )
-        patient = patient_provider.provide_patient()
-        print(patient)
-        task.patients = patient_provider.provide_patient_set(quantity=300)
+        
+        (_patients, _training_set) = patient_provider.provide_patient_set(quantity = self._num_of_patients, 
+                                                                          quantity_training = self._num_patients_training, 
+                                                                          equipe_profile = None, 
+                                                                          urgency_profile = None)
+        
+        master = Master()
+
+        _master_scheduling = master.master_creator() #????
+
+        
+        predictive_model = Pre

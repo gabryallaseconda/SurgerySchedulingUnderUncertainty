@@ -9,7 +9,6 @@ from sklearn.preprocessing import OneHotEncoder
 
 # Modules
 from .patient import Patient
-from .task import Task
 
 
 class PatientsProvider(ABC):
@@ -24,8 +23,6 @@ class PatientsProvider(ABC):
 
     Attributes
     ----------
-    _task : Task
-        Task contains the problem specifications.
     _description : str
         To keep a text description of the provider created.
 
@@ -36,9 +33,8 @@ class PatientsProvider(ABC):
     """
 
     
-    def __init__(self, task:Task, description = ""):
+    def __init__(self, description = ""):
         self._description = description
-        self._task = task
 
     # Getters and setters
     def get_description(self):
@@ -49,13 +45,6 @@ class PatientsProvider(ABC):
     
     description = property(get_description, set_description)
 
-    def get_task(self):
-        return self._task
-    
-    def set_task(self, new:Task):
-        self._task = new
-    
-    task = property(get_task, set_task)
 
     # Abstract methods
     @abstractmethod
@@ -107,8 +96,6 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
     
     Attributes
     ----------
-    _task: Task
-        Task contains the problem specifications.
     _description: str
         To keep a text description of the provider created.
     _historical_data: pd.DataFrame
@@ -126,7 +113,6 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
     """
 
     def __init__(self, 
-                 task:Task, 
                  historical_data: pd.DataFrame, 
                  description = ""):
         """
@@ -134,8 +120,6 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
 
         Parameters
         ----------
-        _task : Task
-            Task contains the problem specifications.
         _description : str, optional
             To keep a text description of the provider created.
         _historical_data: pd.DataFrame
