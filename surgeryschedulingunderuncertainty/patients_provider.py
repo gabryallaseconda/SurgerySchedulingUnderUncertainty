@@ -74,7 +74,7 @@ class PatientsProvider(ABC):
         pass
 
     # General methods
-    def provide_sets(self, quantity, quantity_training, equipe_profile, urgency_profile):
+    def provide_sets(self, quantity, quantity_training, equipe_profile = None, urgency_profile = None):
         return (self.provide_patient_set(quantity=quantity, equipe_profile=equipe_profile, urgency_profile=urgency_profile), 
                 self.provide_patient_training(quantity=quantity_training, equipe_profile=equipe_profile, urgency_profile=urgency_profile))
     
@@ -125,7 +125,7 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
         _historical_data: pd.DataFrame
             Is the pandas' dataframe which provide patients' data.
         """
-        super().__init__(task, description)
+        super().__init__(description)
         
         self._historical_data = historical_data
         
