@@ -7,10 +7,11 @@ from abc import ABC, abstractmethod
 
 class Block(ABC):
     
-    def __init__(self, duration: int, equipes: list[str], weekday: int, order_in_day: int):
+    def __init__(self, duration: int, equipes: list[str], room: str, weekday: int, order_in_day: int):
         self._duration = duration
         self._equipes = equipes
         self._weekday = weekday
+        self._room = room 
         self._order_in_day = order_in_day
 
     # Getters and setters
@@ -29,7 +30,15 @@ class Block(ABC):
         self._equipes = new
     
     equipes = property(get_equipes, set_equipes)
-
+    
+    def get_room(self):
+        return self._room
+    
+    def set_room(self, new: str):
+        self._room = new
+    
+    room = property(get_room, set_room)
+    
     def get_weekday(self):
         return self._weekday
     
@@ -37,6 +46,7 @@ class Block(ABC):
         self._weekday = new
     
     weekday = property(get_weekday, set_weekday)
+
 
     def get_order_in_day(self):
         return self._order_in_day
@@ -51,12 +61,20 @@ class Block(ABC):
 
 class MasterBlock(Block):
 
-    def __init__(self, duration: int, equipes: list[str], weekday: int, order_in_day: int, order_in_master: int):
-        super().__init__(duration, equipes, weekday, order_in_day)
+    def __init__(self, duration: int, equipes: list[str], room: str, weekday: int, order_in_day: int, order_in_master: int):
+        super().__init__(duration=duration, equipes=equipes, room=room, weekday=weekday, order_in_day=order_in_day)
         self._order_in_master = order_in_master
 
-    # Getters and setters
+    def __str__(self):
+        return f"""Master Block number {self._order_in_master}
+                \nEquipe: {self._equipes}
+                \nDuration: {self._duration}
+                \nRoom: {self._room}
+                \nWeekday: {self._weekday}
+                \nNumber in day: {self._order_in_day}
+                """
 
+    # Getters and setters
     def get_order_in_master(self):
         return self._order_in_master
     

@@ -18,6 +18,8 @@ from surgeryschedulingunderuncertainty.patients_provider import (
 )
 
 
+# Va testato quando uso requested_equipe e requested urgency
+
 
 class TestPatientsFromHistoricalDataProvider(unittest.TestCase):
     

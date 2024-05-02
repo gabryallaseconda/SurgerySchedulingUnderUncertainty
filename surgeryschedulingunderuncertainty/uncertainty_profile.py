@@ -11,8 +11,17 @@ import scipy.stats as ss
 
 class UncertaintyProfile(ABC):
 
-    def __init__(self):
+    def __init__(self, nominal_value : float):
+        self._nominal_value = nominal_value
         pass
+
+    def get_nominal_value(self):
+        return self._nominal_value
+    
+    def set_nominal_value(self, new:float):
+        self._nominal_value = new
+    
+    nominal_value = property(get_nominal_value, set_nominal_value)
 
     # Abstract methods
     @abstractmethod
@@ -24,6 +33,10 @@ class UncertaintyProfile(ABC):
 class LogNormalDistribution(UncertaintyProfile):
 
     def __init__(self, param_s, param_scale):
+            
+        super().__init__(nominal_value = param_scale**2/np.sqrt(param_scale**2 + param_s**2))
+
+        
         self._param_s = param_s
         self._param_scale = param_scale
 
@@ -81,6 +94,10 @@ class LogNormalDistribution(UncertaintyProfile):
 class NormalDistribution(UncertaintyProfile):
 
     def __init__(self, param_loc, param_scale):
+        
+        super().__init__(nominal_value = param_loc)
+
+        
         self._param_loc = param_loc
         self._param_scale = param_scale
 
@@ -114,6 +131,11 @@ class NormalDistribution(UncertaintyProfile):
 class HistogramModel(UncertaintyProfile):
 
     def __init__(self, values: list[float], probs: list[float]):
+        
+        
+        #super().__init__(nominal_value = param_loc) # TODO!
+
+        
         values = np.array(values)
         probs = np.array(probs)
 

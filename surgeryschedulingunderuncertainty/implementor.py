@@ -1,46 +1,31 @@
+
+
 # Python STL
 from abc import ABC, abstractmethod
 
 # Packages
 import pyomo.environ as pyo
 
+# Modules
 
-# Objective function
-def ObjRule_standard(self):
-    return pyo.summation(self.model.u, self.model.y) + \
-        sum((1 - sum(self.model.x[d, j, b, i] for d in self.model.D for j in self.model.J for b in self.model.B)) * self.model.u[i] for i in
-            self.model.I) * self.model.c_exclusion + \
-        pyo.summation(self.model.u, self.model.z) * self.model.c_delay
+from ._models_components import (
+    ObjRule_standard,
+    ObjRule_count,
+    delayDetectorRule,
+    capacityRule,
+    capacityOvertimeRule,
+    compatibilityRule,
+    oneSurgeryRule,
+    YVarDefRule
+)
 
-def ObjRule_count(self):
-    return pyo.summation(self.model.x)
-
-# Constraints
-def delayDetectorRule(self, i):
-    return self.model.y[i] + self.model.w[i] - self.model.l[i] <= self.model.z[i]
-
-def capacityRule(self, d, j, b):
-    return sum(self.model.x[d, j, b, i] * self.model.t[i] for i in self.model.I) <= self.model.g[d, j, b]
-
-def capacityOvertimeRule(self, d, j, b, k):
-    return sum(self.model.x[d, j, b, i] * (self.model.t[i] + self.model.eps[i, k]) for i in self.model.I) <= self.model.g[d, j, b]
-
-def compatibilityRule(self, d, j, b, i):
-    return self.model.x[d, j, b, i] <= self.model.a[d, j, b, i]
-
-def oneSurgeryRule(self, i): # one surgery
-    return sum(self.model.x[d, j, b, i] for j in self.model.J for d in self.model.D for b in self.model.B) <= 1
-
-def YVarDefRule(self, i): # Y variable definition
-    return self.model.y[i] == sum(d * self.model.x[d, j, b, i] for d in self.model.D for j in self.model.J for b in self.model.B) + \
-                (self.model.n_days + 1) * (1 - sum(self.model.x[d, j, b, i] for d in self.model.D for j in self.model.J for b in self.model.B))
 
 
 class Implementor(ABC):
     
-    def __init__(self, instance_data, description = ""):
+    def __init__(self, description = ""):
         self._description = description
-        self._instance_data = instance_data
+        self._instance_data = None
         self._model = pyo.AbstractModel() # pyomo abstract model
 
     # Getters and setters
@@ -65,7 +50,7 @@ class Implementor(ABC):
     # General methods
     def run(self): #!!!!!
         # Instance creation
-        self._instance = self.model.create_instance(self.instance_data)
+        self._instance = self._model.create_instance(self.instance_data)
 
         # Solver configuration
         self._solver = pyo.SolverFactory('appsi_highs')
@@ -91,53 +76,60 @@ class Implementor(ABC):
     
 
 
-class StandardImplementor():
+class StandardImplementor(Implementor):
 
-    def __init__(self, instance_data, description = ""):
-        super().__init(instance_data, description)
+    def __init__(self, description="", instance_data=None):
+        super().__init__(description)
 
         # Sets
-        self.model.n_days = pyo.Param()
-        self.model.n_rooms = pyo.Param()
-        self.model.n_blocks = pyo.Param()
-        self.model.n_pats = pyo.Param()
-        self.model.n_realizations = pyo.Param()
+        self._model.n_days = pyo.Param(within=pyo.NonNegativeIntegers)
+        self._model.n_rooms = pyo.Param(within=pyo.NonNegativeIntegers)
+        self._model.n_blocks = pyo.Param(within=pyo.NonNegativeIntegers)
+        self._model.n_pats = pyo.Param(within=pyo.NonNegativeIntegers)
+        self._model.n_realizations = pyo.Param(within=pyo.NonNegativeIntegers)
 
-        self.model.D = pyo.RangeSet(1, self.model.n_days)
-        self.model.J = pyo.RangeSet(1, self.model.n_rooms)
-        self.model.B = pyo.RangeSet(1, self.model.n_blocks)
-        self.model.I = pyo.RangeSet(1, self.model.n_pats)
-        self.model.K = pyo.RangeSet(1, self.model.n_realizations)
+        #self._model.D = pyo.RangeSet(1, self._model.n_days)
+        #self._model.J = pyo.RangeSet(1, self._model.n_rooms)
+        self._model.B = pyo.RangeSet(1, self._model.n_blocks)
+        self._model.I = pyo.RangeSet(1, self._model.n_pats)
+        self._model.K = pyo.RangeSet(1, self._model.n_realizations)
 
         # Parameters
-        self.model.t = pyo.Param(self.model.I)
-        self.model.w = pyo.Param(self.model.I)
-        self.model.l = pyo.Param(self.model.I)
-        self.model.u = pyo.Param(self.model.I)
+        self._model.t = pyo.Param(self._model.I, within=pyo.NonNegativeReals)
+        self._model.w = pyo.Param(self._model.I, within=pyo.NonNegativeReals)
+        self._model.l = pyo.Param(self._model.I, within=pyo.NonNegativeReals)
+        self._model.u = pyo.Param(self._model.I, within=pyo.NonNegativeReals)
 
-        self.model.eps = pyo.Param(self.model.I, self.model.K)
+        self._model.eps = pyo.Param(self._model.I, self._model.K, within=pyo.NonNegativeReals)
 
-        self.model.g = pyo.Param(self.model.D, self.model.J, self.model.B, within=pyo.NonNegativeIntegers)
-        self.model.a = pyo.Param(self.model.D, self.model.J, self.model.B, self.model.I, within=pyo.Binary)
+        #self._model.g = pyo.Param(self._model.D, self._model.J, self._model.B, within=pyo.NonNegativeIntegers)
+        #self._model.a = pyo.Param(self._model.D, self._model.J, self._model.B, self._model.I, within=pyo.Binary)
+        self._model.g = pyo.Param(self._model.B, within=pyo.NonNegativeIntegers)
+        self._model.a = pyo.Param(self._model.B, self._model.I, within=pyo.Binary)
 
-        self.model.c_exclusion = pyo.Param()
-        self.model.c_delay = pyo.Param()
+        self._model.c_exclusion = pyo.Param(within=pyo.NonNegativeReals)
+        self._model.c_delay = pyo.Param(within=pyo.NonNegativeReals)
 
         # Variables
-        self.model.x = pyo.Var(self.model.D, self.model.J, self.model.B, self.model.I, within=pyo.Binary)
-        self.model.y = pyo.Var(self.model.I, within=pyo.NonNegativeReals)
-        self.model.z = pyo.Var(self.model.I, within=pyo.NonNegativeReals)
+        #self._model.x = pyo.Var(self._model.D, self._model.J, self._model.B, self._model.I, within=pyo.Binary)
+        self._model.x = pyo.Var(self._model.B, self._model.I, within=pyo.Binary)
+        self._model.y = pyo.Var(self._model.I, within=pyo.NonNegativeReals)
+        self._model.z = pyo.Var(self._model.I, within=pyo.NonNegativeReals)
 
         # Objective function
-        self.model.obj = pyo.Objective(rule=ObjRule_standard, sense=pyo.minimize)
+        self._model.obj = pyo.Objective(rule=ObjRule_standard, sense=pyo.minimize)
         
         # Constraints
-        self.model.delayDetector = pyo.Constraint(self.model.I, rule=delayDetectorRule)
-        self.model.capacity = pyo.Constraint(self.model.D, self.model.J, self.model.B, rule=capacityRule)
-        self.model.capacityOvertime = pyo.Constraint(self.model.D, self.model.J, self.model.B, self.model.K, rule=capacityOvertimeRule)
-        self.model.compatibility = pyo.Constraint(self.model.D, self.model.J, self.model.B, self.model.I, rule=compatibilityRule)
-        self.model.oneSurgery = pyo.Constraint(self.model.I, rule=oneSurgeryRule)
-        self.model.YVarDef = pyo.Constraint(self.model.I, rule=YVarDefRule)
+        self._model.delayDetector = pyo.Constraint(self._model.I, rule=delayDetectorRule)
+        #self._model.capacity = pyo.Constraint(self._model.D, self._model.J, self._model.B, rule=capacityRule)
+        #self._model.capacityOvertime = pyo.Constraint(self._model.D, self._model.J, self._model.B, self._model.K, rule=capacityOvertimeRule)
+        #self._model.compatibility = pyo.Constraint(self._model.D, self._model.J, self._model.B, self._model.I, rule=compatibilityRule)
+        self._model.oneSurgery = pyo.Constraint(self._model.I, rule=oneSurgeryRule)
+        self._model.YVarDef = pyo.Constraint(self._model.I, rule=YVarDefRule)
+        
+        self._model.capacity = pyo.Constraint(self._model.B, rule=capacityRule)
+        self._model.capacityOvertime = pyo.Constraint(self._model.B, self._model.K, rule=capacityOvertimeRule)
+        self._model.compatibility = pyo.Constraint(self._model.B, self._model.I, rule=compatibilityRule)
         
     
 
@@ -147,44 +139,44 @@ class CountingImplementor():
         super().__init(instance_data, description)
 
         # Sets
-        self.model.n_days = pyo.Param()
-        self.model.n_rooms = pyo.Param()
-        self.model.n_blocks = pyo.Param()
-        self.model.n_pats = pyo.Param()
-        self.model.n_realizations = pyo.Param()
+        self._model.n_days = pyo.Param()
+        self._model.n_rooms = pyo.Param()
+        self._model.n_blocks = pyo.Param()
+        self._model.n_pats = pyo.Param()
+        self._model.n_realizations = pyo.Param()
 
-        self.model.D = pyo.RangeSet(1, self.model.n_days)
-        self.model.J = pyo.RangeSet(1, self.model.n_rooms)
-        self.model.B = pyo.RangeSet(1, self.model.n_blocks)
-        self.model.I = pyo.RangeSet(1, self.model.n_pats)
-        self.model.K = pyo.RangeSet(1, self.model.n_realizations)
+        self._model.D = pyo.RangeSet(1, self._model.n_days)
+        self._model.J = pyo.RangeSet(1, self._model.n_rooms)
+        self._model.B = pyo.RangeSet(1, self._model.n_blocks)
+        self._model.I = pyo.RangeSet(1, self._model.n_pats)
+        self._model.K = pyo.RangeSet(1, self._model.n_realizations)
 
         # Parameters
-        self.model.t = pyo.Param(self.model.I)
-        self.model.w = pyo.Param(self.model.I)
-        self.model.l = pyo.Param(self.model.I)
-        self.model.u = pyo.Param(self.model.I)
+        self._model.t = pyo.Param(self._model.I)
+        self._model.w = pyo.Param(self._model.I)
+        self._model.l = pyo.Param(self._model.I)
+        self._model.u = pyo.Param(self._model.I)
 
-        self.model.eps = pyo.Param(self.model.I, self.model.K)
+        self._model.eps = pyo.Param(self._model.I, self._model.K)
 
-        self.model.g = pyo.Param(self.model.D, self.model.J, self.model.B, within=pyo.NonNegativeIntegers)
-        self.model.a = pyo.Param(self.model.D, self.model.J, self.model.B, self.model.I, within=pyo.Binary)
+        self._model.g = pyo.Param(self._model.D, self._model.J, self._model.B, within=pyo.NonNegativeIntegers)
+        self._model.a = pyo.Param(self._model.D, self._model.J, self._model.B, self._model.I, within=pyo.Binary)
 
-        self.model.c_exclusion = pyo.Param()
-        self.model.c_delay = pyo.Param()
+        self._model.c_exclusion = pyo.Param()
+        self._model.c_delay = pyo.Param()
 
         # Variables
-        self.model.x = pyo.Var(self.model.D, self.model.J, self.model.B, self.model.I, within=pyo.Binary)
-        self.model.y = pyo.Var(self.model.I, within=pyo.NonNegativeReals)
-        self.model.z = pyo.Var(self.model.I, within=pyo.NonNegativeReals)
+        self._model.x = pyo.Var(self._model.D, self._model.J, self._model.B, self._model.I, within=pyo.Binary)
+        self._model.y = pyo.Var(self._model.I, within=pyo.NonNegativeReals)
+        self._model.z = pyo.Var(self._model.I, within=pyo.NonNegativeReals)
 
         # Objective function
-        self.model.obj = pyo.Objective(rule=ObjRule_count, sense=pyo.maximize)
+        self._model.obj = pyo.Objective(rule=ObjRule_count, sense=pyo.maximize)
 
         # Constraints
-        self.model.delayDetector = pyo.Constraint(self.model.I, rule=delayDetectorRule)
-        self.model.capacity = pyo.Constraint(self.model.D, self.model.J, self.model.B, rule=capacityRule)
-        self.model.capacityOvertime = pyo.Constraint(self.model.D, self.model.J, self.model.B, self.model.K, rule=capacityOvertimeRule)
-        self.model.compatibility = pyo.Constraint(self.model.D, self.model.J, self.model.B, self.model.I, rule=compatibilityRule)
-        self.model.oneSurgery = pyo.Constraint(self.model.I, rule=oneSurgeryRule)
-        self.model.YVarDef = pyo.Constraint(self.model.I, rule=YVarDefRule)
+        self._model.delayDetector = pyo.Constraint(self._model.I, rule=delayDetectorRule)
+        self._model.capacity = pyo.Constraint(self._model.D, self._model.J, self._model.B, rule=capacityRule)
+        self._model.capacityOvertime = pyo.Constraint(self._model.D, self._model.J, self._model.B, self._model.K, rule=capacityOvertimeRule)
+        self._model.compatibility = pyo.Constraint(self._model.D, self._model.J, self._model.B, self._model.I, rule=compatibilityRule)
+        self._model.oneSurgery = pyo.Constraint(self._model.I, rule=oneSurgeryRule)
+        self._model.YVarDef = pyo.Constraint(self._model.I, rule=YVarDefRule)

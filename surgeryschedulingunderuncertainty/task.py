@@ -31,7 +31,7 @@ class Task():
         # TODO: revisionare questo
     _robustness_overtime: int
         Robustness parameter describing the allowed overtime in minutes. # TODO anche questo
-    _urgency_to_max_waiting_time: dict
+    _urgency_to_max_waiting_days: dict
         A dictionary mapping the urgency parameter to the max waiting time in days
         allowed for a patient.
     _urgency_to_urgency_grades: dict
@@ -51,7 +51,7 @@ class Task():
                  num_of_patients: int,
                  robustness_risk: float,
                  robustness_overtime: int,
-                 urgency_to_max_waiting_time: dict, 
+                 urgency_to_max_waiting_days: dict = None, 
                  patients:list[Patient] = None,
                  master_schedule: Master = None,
                  ):
@@ -61,16 +61,21 @@ class Task():
         self._num_of_patients = num_of_patients
         self._robustness_risk = robustness_risk
         self._robustness_overtime = robustness_overtime
-        self._urgency_to_max_waiting_time = urgency_to_max_waiting_time
-        self._patients = patients
-        self._master_schedule = master_schedule
+        self._urgency_to_max_waiting_days = urgency_to_max_waiting_days # optional argument!
+        
+        #if patients & master_schedule:
+            
+        
+        self._patients = patients # Attenzione che qui vanno verificate le equipes
+        self._master_schedule = master_schedule # Attenzione che qui vanno verificate le equipes
+        
         
         ## From urgency to max waiting time getting mapping for urgency grades
 
         # Get original keys and sorted
-        ordered_keys = sorted(self._urgency_to_max_waiting_time.keys())
+        ordered_keys = sorted(self._urgency_to_max_waiting_days.keys())
         # Getting respective values
-        values = [self._urgency_to_max_waiting_time[key] for key in ordered_keys]
+        values = [self._urgency_to_max_waiting_days[key] for key in ordered_keys]
         # Inverting the value list
         inverted_values = values[::-1]
         # Creating the new mapping dictionary
@@ -107,10 +112,10 @@ class Task():
     robustness_overtime = property(get_robustness_overtime)
 
 
-    def get_urgency_to_max_waiting_time(self):
-        return self._urgency_to_max_waiting_time
+    def get_urgency_to_max_waiting_days(self):
+        return self._urgency_to_max_waiting_days
     
-    urgency_to_max_waiting_time = property(get_urgency_to_max_waiting_time)
+    urgency_to_max_waiting_days = property(get_urgency_to_max_waiting_days)
 
 
     def get_urgency_to_urgency_grades(self):
@@ -130,6 +135,7 @@ class Task():
         """
 
         # TODO bisogna verificare che le equipe combacino con quelle del master schedule
+        
 
         if len(new) != self._num_of_patients:
             raise ValueError("The length of the list of patients provided does not match the task's number of patients.")
@@ -137,6 +143,13 @@ class Task():
         patient_ids = [x.id for x in new]
         if len(patient_ids) != len(set(patient_ids)):
             raise ValueError("In the given list, there are patients with the same id.")
+        
+        
+        # Apply urgency_to_max_waiting_days
+        
+        if self._urgency_to_max_waiting_days:
+            for patient in new:
+                patient.max_waiting_days = self._urgency_to_max_waiting_days.get(patient.urgency)
         
         self._patients = new
     

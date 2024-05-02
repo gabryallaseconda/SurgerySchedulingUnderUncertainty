@@ -23,8 +23,8 @@ class PatientsProvider(ABC):
 
     Attributes
     ----------
-    _description : str
-        To keep a text description of the provider created.
+    _name : str
+        To keep a text name of the provider created.
 
     Methods
     -------
@@ -33,17 +33,17 @@ class PatientsProvider(ABC):
     """
 
     
-    def __init__(self, description = ""):
-        self._description = description
+    def __init__(self, name = ""):
+        self._name = name
 
     # Getters and setters
-    def get_description(self):
-        return self._description
+    def get_name(self):
+        return self._name
     
-    def set_description(self, new:str):
-        self._description = new
+    def set_name(self, new:str):
+        self._name = new
     
-    description = property(get_description, set_description)
+    name = property(get_name, set_name)
 
 
     # Abstract methods
@@ -80,7 +80,23 @@ class PatientsProvider(ABC):
     
 
 
-class PatientsFromHistoricalDataProvider(PatientsProvider):
+class PatientsGeneratedProvider(PatientsProvider):
+
+    # Abstract methods implementation
+
+    def provide_patient(self, patient_model):
+        pass
+
+    def provide_patient_set(self, patient_model, num):
+        pass
+
+    def provide_patient_training(self, patient_model, num):
+        pass
+    
+
+
+
+class PatientsFromHistoricalDataProvider(PatientsProvider):   # TODO bisogna gestire anche max waiting time e days waitn
     """
     Inherit from abstract class PatientsProvider
     Class for a patients provider that extract patients from a dataset of already
@@ -96,8 +112,8 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
     
     Attributes
     ----------
-    _description: str
-        To keep a text description of the provider created.
+    _name: str
+        To keep a text name of the provider created.
     _historical_data: pd.DataFrame
         Is the pandas' dataframe which provide patients' data.
     _sampled_indexes: set
@@ -114,20 +130,22 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
 
     def __init__(self, 
                  historical_data: pd.DataFrame, 
-                 description = ""):
+                 name = ""):
         """
         Constructor.
 
         Parameters
         ----------
-        _description : str, optional
-            To keep a text description of the provider created.
+        _name : str, optional
+            To keep a text name of the provider created.
         _historical_data: pd.DataFrame
             Is the pandas' dataframe which provide patients' data.
         """
-        super().__init__(description)
+        super().__init__(name)
         
         self._historical_data = historical_data
+        
+        # TODO qui bisogna controllare che ci siano le colonne equipe, urgency e days_waiting
         
         self._sampled_indexes = set()
         self._patient_id_start_number = 0
@@ -163,7 +181,6 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
     # Abstract methods implementation
 
     def provide_patient(self, requested_equipe:str = None, requested_urgency:int = None, include_target: bool = True) -> Patient:
-
         """
         Provide a single patient. Can request an equipe and/or an urgency.
 
@@ -180,6 +197,9 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
         Patient
             A patient object filled with information in the dataset.
         """
+        
+        if requested_urgency:
+            requested_urgency = int(requested_urgency) # cast in case one uses str
 
         if (requested_equipe != None) & (requested_equipe != None):
             filtered_data = self._historical_data.loc[
@@ -197,6 +217,12 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
         else: filtered_data = self._historical_data
 
         available_indexes = [ x for x in list(filtered_data.index) if x not in self._sampled_indexes]
+        
+        if len(available_indexes) == 0:
+            print(available_indexes)
+            print("No patients are available with the required characteristics.")
+            return None
+        
         patient_index = random.choice(available_indexes)
         self._sampled_indexes.add(patient_index)
 
@@ -210,8 +236,16 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
         
         equipe = self._historical_data.loc[patient_index, 'equipe']
         urgency = self._historical_data.loc[patient_index, 'urgency']
+        
+        days_waiting = self._historical_data.loc[patient_index, 'days_waiting']
 
-        return Patient(id=id,equipe=equipe, urgency=urgency, features=features, target=target, uncertainty_profile=None)
+        return Patient(id=id, 
+                       equipe=equipe, 
+                       urgency=urgency, 
+                       days_waiting=days_waiting,
+                       features=features, 
+                       target=target, 
+                       uncertainty_profile=None)
     
 
     def provide_patients(self, 
@@ -219,6 +253,8 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
                          equipe_profile:dict = None, 
                          urgency_profile:dict = None, 
                          include_target: bool = True) -> list[Patient]:
+        
+        # Fa uso di patient provider, iterativamente
         
         tollerance = 1e-6
 
@@ -284,7 +320,7 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
         Quando chiamata, se forzata o se tutti i pazienti sono stati estratti, si resetta il contenitore
         degli indici già estratti.
         Args:
-            enforce (bool, optional): _description_. Defaults to False.
+            enforce (bool, optional): _name_. Defaults to False.
         """
         if enforce | (len(self._historical_data.index) == self._sampled_indexes):
             print("Warning: from now on patients can be resampled.")
@@ -293,7 +329,11 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):
 
 
 
-class PatientsGeneratedProvider(PatientsProvider):
+
+    
+    
+
+class TruePatientsProvider(PatientsProvider):
 
     # Abstract methods implementation
 
