@@ -28,7 +28,9 @@ class Patient():
         self._max_waiting_days = max_waiting_days
 
     def __str__(self):
-        return f'Patient id: {self.id} \n equipe: {self.equipe} \n urgency: {self.urgency}'
+        if self._uncertainty_profile:
+            return f'Patient id: {self._id} \n equipe: {self._equipe} \n urgency: {self._urgency} \n nominal duration: {self._uncertainty_profile.get_nominal_value()}'
+        return f'Patient id: {self._id} \n equipe: {self._equipe} \n urgency: {self._urgency}'
 
     # Getters and setters
     def get_id(self):

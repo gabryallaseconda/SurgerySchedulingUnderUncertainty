@@ -5,10 +5,11 @@ from abc import ABC, abstractmethod
 import pyomo.environ as pyo  # not used for the implementor adversary
 
 # Modules
-from .implementor import Implementor
+from .implementor import Implementor, ChanceConstraintsImplementor
 from .adversary import Adversary
 from .task import Task
 from .predictive_model import PredictiveModel
+from .schedule import Schedule
 
 
 
@@ -64,7 +65,12 @@ class ImplementorAdversary(Optimizer):
     # Abstract methods implementation
     def run(self, max_loops:int):
         
-        self._implementor.run()
+        # Creating instance
+        self.create_instance()
+        
+        schedule = self._implementor.run()
+        
+        self.update_instance(schedule) # questo andrà dopo l'adversary
 
         # Main implementor adversary loop
         for loop in range(max_loops):
@@ -93,13 +99,9 @@ class ImplementorAdversary(Optimizer):
         
         #n_week_days = master_schedule.get_week_length
         n_rooms = master_schedule.get_num_of_rooms()
-        
-
-        
-            
+                    
         c_exclusion = 1  #TODO
         c_delay = 1  #TODO
-        
         
         # Get patients
         patients = self._task.get_patients()
@@ -109,7 +111,6 @@ class ImplementorAdversary(Optimizer):
         master_blocks = master_schedule.get_blocks()
         n_master_blocks = master_schedule.get_num_of_blocks()
         n_schedule_blocks = master_schedule.get_num_of_blocks() * self._task.num_of_weeks 
-        
 
         # Instance data structure initialization
         instance = {}
@@ -126,7 +127,6 @@ class ImplementorAdversary(Optimizer):
                 
         instance.update({'g': update_dictionary})
         
-
         # Parameter a (compatibility)
 
         update_dictionary = {}
@@ -146,7 +146,6 @@ class ImplementorAdversary(Optimizer):
                     update_dictionary.update({(b+1,i+1) : 0})
 
         instance.update({'a': update_dictionary})
-        
         
         # TODO il ciclo sui pazieti potrebbe diventare unico...
 
@@ -186,6 +185,180 @@ class ImplementorAdversary(Optimizer):
 
         instance.update({'l': update_dictionary})
 
+        instance.update({
+            'n_days': {None: n_days},
+            'n_blocks': {None: n_schedule_blocks},
+            'n_rooms': {None: n_rooms},
+            'n_pats': {None: n_pats},
+
+            # Objective functions coefficients
+            'c_exclusion': {None: c_exclusion},
+            'c_delay': {None: c_delay},
+            
+            # TODO controllare se ha senso tenerla
+            'n_realizations': {None : 0}
+
+            # Covers variables # ANDREBBE RIMOSSA TODO
+            # 'covers_excluded': {None: len(covers)},
+            # 'different_block_duration': {None: different_block_duration},
+        })
+
+        # Pyomo structure requirement - saving among the class members
+        self._instance = {None: instance}
+        
+        self._implementor.instance_data = self._instance
+
+
+    def run_implementor(self):
+        solved_instance = self._implementor.run()
+        return Schedule(task = self.task, solved_instance = solved_instance)
+        
+
+    def run_adversary(self, schedule):
+        # return self.adversary.run(schedule)
+        pass
+
+    def update_instance(self, adversary_fragilities):
+        # update self.instance_data
+        pass
+
+
+
+class VanillaImplementor(Optimizer):
+    
+    
+    def __init__(self, task:Task, implementor:Implementor, description = ""):  # implementor:Implementor TODO fix this
+
+        super().__init__(task, description)
+        
+        # Questo controllo perché chance constraints richiede robustness_overtime
+        #if isinstance (implementor, ChanceConstraintsImplementor):
+        #self._implementor = implementor(description = "test", robustness_overtime = task.robustness_overtime) # TODO fix this
+        #else:
+        #    self._implementor = implementor()  # Fix this TODO 
+
+        self._implementor = implementor # TODO add validation and raise error if there is no task argument
+        
+        self._instance_data = None
+
+    # Getters and setters
+
+    # Abstract methods implementation
+    def run(self):
+        
+        # Creating instance
+        self.create_instance()
+        
+        schedule = self._implementor.run()
+        
+        return schedule
+
+    # Specific methods
+    def create_instance(self):
+        """
+        Qui il metodo è modificato per permettere la chance constraints. Se va modificato va modificato per tutti i tipi di implemnentor...
+        """
+        
+        master_schedule = self._task.get_master_schedule()
+        
+        # Parameters for sets
+        n_days = self._task.num_of_weeks * master_schedule.get_week_length()
+        
+        #n_week_days = master_schedule.get_week_length
+        n_rooms = master_schedule.get_num_of_rooms()
+                    
+        c_exclusion = 1  #TODO
+        c_delay = 1  #TODO
+        
+        # Get patients
+        patients = self._task.get_patients()
+        n_pats = self._task.num_of_patients
+        
+        # Get master blocks
+        master_blocks = master_schedule.get_blocks()
+        n_master_blocks = master_schedule.get_num_of_blocks()
+        n_schedule_blocks = master_schedule.get_num_of_blocks() * self._task.num_of_weeks 
+
+        # Instance data structure initialization
+        instance = {}
+
+        # Parameter g (gamma - capacity)
+        update_dictionary = {}
+
+        for b in range(n_schedule_blocks):
+            
+            master_block_index = b % n_master_blocks
+
+            update_dictionary.update \
+                    ({(b + 1): master_blocks[master_block_index].duration })
+                
+        instance.update({'g': update_dictionary})
+        
+        # Parameter a (compatibility)
+
+        update_dictionary = {}
+        
+        for b in range(n_schedule_blocks):
+            
+            master_block_index = b % n_master_blocks
+            
+            for i, patient in enumerate(patients):
+
+                patient_equipe = patient.equipe
+                block_equipes = master_blocks[master_block_index].equipes
+                
+                if patient_equipe in block_equipes:
+                    update_dictionary.update({(b+1,i+1) : 1})
+                else:
+                    update_dictionary.update({(b+1,i+1) : 0})
+
+        instance.update({'a': update_dictionary})
+        
+        # TODO il ciclo sui pazieti potrebbe diventare unico...
+
+        # Parameter t (estimated surgery duration time)
+
+        update_dictionary = {}
+
+        for i, patient in enumerate(patients):
+            update_dictionary.update({i + 1: patient.uncertainty_profile.nominal_value})
+
+        instance.update({'t': update_dictionary})
+
+        # Parameter u (Urgency)
+
+        update_dictionary = {}
+
+        for i, patient in enumerate(patients):
+            update_dictionary.update({i + 1: patient.urgency})
+
+        instance.update({'u': update_dictionary})
+
+        # Parameter w (Waiting days already spent)
+
+        update_dictionary = {}
+
+        for i, patient in enumerate(patients):
+            update_dictionary.update({i + 1: patient.days_waiting})
+
+        instance.update({'w': update_dictionary})
+
+        # Parameter l (maximum waiting days allowed)
+
+        update_dictionary = {}
+
+        for i, patient in enumerate(patients):
+            update_dictionary.update({i + 1: patient.max_waiting_days})
+
+        instance.update({'l': update_dictionary})
+        
+        # Parameter f (percentage point given overtime risk)
+        
+        update_dictionary = {}
+        for i, patient in enumerate(patients):
+            update_dictionary.update({i + 1: patient.uncertainty_profile.percent_point_function(1-self.task.robustness_risk)})
+
+        instance.update({'f': update_dictionary})
 
         instance.update({
             'n_days': {None: n_days},
@@ -211,22 +384,12 @@ class ImplementorAdversary(Optimizer):
         self._implementor.instance_data = self._instance
 
 
-    def run_implementor(self, instance_data):
-        return self._implementor.run(instance_data)
+    def run_implementor(self):
+        solved_instance = self._implementor.run()
+        return Schedule(task = self.task, solved_instance = solved_instance)
         
 
-    def run_adversary(self, schedule):
-        # return self.adversary.run(schedule)
-        pass
-
-    def update_instance(self, adversary_fragilities):
-        # update self.instance_data
-        pass
-
-
-
-class ChanceConstraintsOptimizer(Optimizer):
-    
+    '''
     def __init__(self, task:Task, description = ""):
         
         from ._models_components import (
@@ -299,10 +462,6 @@ class ChanceConstraintsOptimizer(Optimizer):
         
 
 
-        
-        
-        
-
     # Getters and setters
     def get_description(self):
         return self._description
@@ -341,5 +500,5 @@ class ChanceConstraintsOptimizer(Optimizer):
 
         return self._instance # questa adrebbe processata dentro una schedula prima di procedere
 
-
+'''
 

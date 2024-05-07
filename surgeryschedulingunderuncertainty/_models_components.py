@@ -53,4 +53,16 @@ def oneSurgeryRule(model, i): # one surgery
 def YVarDefRule(model, i): # Y variable definition # TODO: sistemare questo scempio. cosa fare se i giorni contengono un numero diverso di blocchi?
     return model.y[i] == sum( (int(b/ (model.n_blocks/model.n_days) )+1) * model.x[b, i] for b in model.B) + \
                 (model.n_days + 1) * (1 - sum(model.x[b, i] for b in model.B))
-                
+
+# Chance Constraints - Time Extension variable q
+
+def fractionSumOneRule(model, b): 
+    return sum(model.q[b,i] for i in model.I) <= 1
+
+def assignmentExistRule(model, b, i):
+    return model.q[b,i] <= model.x[b,i]
+
+def chanceConstraintRule(robustness_overtime):
+    def internalRule(model, b, i): 
+        return (model.g[b]+robustness_overtime)*model.q[b,i] >= model.f[i]
+    return internalRule

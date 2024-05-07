@@ -88,7 +88,31 @@ class LogNormalDistribution(UncertaintyProfile):
 
         return samples
 
+    def percent_point_function(self, probability):
+        """
+        Using this method for the chans constraints implementor
 
+        """
+        # SHIT
+        #return ss.lognorm.ppf(probability, s= , loc= , scale = )
+        
+        # Rename just to make the term convenction clearer
+        mean = self._param_scale
+        std = self._param_s
+
+        # Transform the parameters
+        my_mu = np.log(mean**2/np.sqrt(mean**2 + std**2))
+        my_sigma = np.log(1+(std**2)/(mean**2))
+
+        # Get the percent point from normal 
+        value = ss.norm.ppf(q = probability, loc = my_mu, scale = my_sigma)
+
+        # Trasform the percent point
+        value = np.exp(value)
+
+        return value
+        
+        
 
 
 class NormalDistribution(UncertaintyProfile):

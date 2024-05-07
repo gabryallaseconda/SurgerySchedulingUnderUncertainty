@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 # Packages
 
 # Modules
+from .patient import Patient
 
 class Block(ABC):
     
@@ -85,48 +86,52 @@ class MasterBlock(Block):
 
 
 
-# class ScheduleBlock(Block):
+class ScheduleBlock(Block):
 
-#     def __init__(self, duration: int, equipes: list[str], weekday: int, order_in_day: int, 
-#                  order_in_week: int, order_in_schedule: int, patients: list[Patient] = None):
-#         super().__init__(duration, equipes, weekday, order_in_day)
-#         self._order_in_week = order_in_week
-#         self._order_in_schedule = order_in_schedule
-#         self._patients = patients
+    def __init__(self, duration: int, equipes: list[str], room: str, weekday: int, order_in_day: int, 
+                 order_in_week: int, order_in_schedule: int, patients: list[Patient] = None):
+        
+        super().__init__(duration, equipes, room, weekday, order_in_day)
+        
+        self._order_in_week = order_in_week
+        self._order_in_schedule = order_in_schedule
+        
+        # if patients argument is None we create an empty list to store the patients. Use add_patient to populate the list.
+        if patients: 
+            self._patients = patients
+        else:
+            self._patients = []
 
-#     # Getters and setters 
+    # Getters and setters 
 
-#     def get_order_in_week(self):
-#         return self._order_in_week
+    def get_order_in_week(self):
+        return self._order_in_week
+    def set_order_in_week(self, new:int):
+        self._order_in_week = new
+    order_in_week = property(get_order_in_week, set_order_in_week)
+
+    def get_order_in_schedule(self):
+        return self._order_in_schedule    
+    def set_order_in_schedule(self, new:int):
+        self._order_in_schedule = new
+    order_in_schedule = property(get_order_in_schedule, set_order_in_schedule)
+
+    def get_patients(self):
+        return self._patients    
+    def set_patients(self, new:list[Patient]):
+        self._patients = new
+    patients = property(get_patients, set_patients)
+
+    # Methods
     
-#     def set_order_in_week(self, new:int):
-#         self._order_in_week = new
+    def add_patient(self, new:Patient):
+        self._patients.append(new)
+        return True
     
-#     order_in_week = property(get_order_in_week, set_order_in_week)
 
+    def proportion_urgency(self):
+        pass
 
-#     def get_order_in_schedule(self):
-#         return self._order_in_schedule
-    
-#     def set_order_in_schedule(self, new:int):
-#         self._order_in_schedule = new
-    
-#     order_in_schedule = property(get_order_in_schedule, set_order_in_schedule)
-
-
-#     def get_patients(self):
-#         return self._patients
-    
-#     def set_patients(self, new:list[Patient]):
-#         self._patients = new
-    
-#     patients = property(get_patients, set_patients)
-
-#     # Methods
-
-#     def proportion_urgency(self):
-#         pass
-
-#     def metric_undertime(self):
-#         pass
+    def metric_undertime(self):
+        pass
 
