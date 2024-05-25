@@ -65,6 +65,7 @@ class MasterBlock(Block):
     def __init__(self, duration: int, equipes: list[str], room: str, weekday: int, order_in_day: int, order_in_master: int):
         super().__init__(duration=duration, equipes=equipes, room=room, weekday=weekday, order_in_day=order_in_day)
         self._order_in_master = order_in_master
+        self.robustness_budget_set = {}
 
     def __str__(self):
         return f"""Master Block number {self._order_in_master}
@@ -78,11 +79,13 @@ class MasterBlock(Block):
     # Getters and setters
     def get_order_in_master(self):
         return self._order_in_master
-    
     def set_order_in_master(self, new:int):
         self._order_in_master = new
-    
     order_in_master = property(get_order_in_master, set_order_in_master)
+    
+    def BSParameters(times_mean:float, patient_std:float):
+        
+        for gamma in range
 
 
 
@@ -121,6 +124,9 @@ class ScheduleBlock(Block):
     def set_patients(self, new:list[Patient]):
         self._patients = new
     patients = property(get_patients, set_patients)
+    
+    def get_num_of_patients(self):
+        return len(self._patients)
 
     # Methods
     

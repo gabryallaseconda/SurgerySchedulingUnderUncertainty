@@ -54,6 +54,7 @@ class Task():
                  urgency_to_max_waiting_days: dict = None, 
                  patients:list[Patient] = None,
                  master_schedule: Master = None,
+                 gamma_max:int = 10,
                  ):
         
         self._name = name
@@ -62,6 +63,12 @@ class Task():
         self._robustness_risk = robustness_risk
         self._robustness_overtime = robustness_overtime
         self._urgency_to_max_waiting_days = urgency_to_max_waiting_days # optional argument!
+        
+        self._num_adversary_realizations = 0
+        
+        self._gamma_max = gamma_max
+        
+        
         
         #if patients & master_schedule:
             
@@ -164,5 +171,31 @@ class Task():
         # e che le equipe combacino con i pazienti
     
     master_schedule = property(get_master_schedule, set_master_schedule)
+    
+    
+    def get_gamma_max(self):
+        return self._gamma_max
+    def set_gamma_max(self, new:int):
+        self._gamma_max = new
+    gamma_max = property(get_gamma_max, set_gamma_max)
+    
+    
+    def get_num_adversary_realizations(self):
+        return self._num_adversary_realizations
+    num_adversary_realizations = property(get_num_adversary_realizations)
 
+
+    def add_adversary_realization(self, adversary_realization: dict):
+        patients_ids = adversary_realization.keys()
+        
+        for patient in self.patients:
+            if patient.id in patients_ids:
+                patient.add_adversary_realization(adversary_realization.get(patients_ids))
+            else:
+                patient.add_adversary_realization(0.0)
+            
+        self._num_adversary_realizations += 1
+        
+
+        
 

@@ -26,11 +26,13 @@ class Patient():
         self._urgency = urgency
         self._days_waiting = days_waiting
         self._max_waiting_days = max_waiting_days
+        
+        self._adversary_realization = []
 
     def __str__(self):
         if self._uncertainty_profile:
-            return f'Patient id: {self._id} \n equipe: {self._equipe} \n urgency: {self._urgency} \n nominal duration: {self._uncertainty_profile.get_nominal_value()}'
-        return f'Patient id: {self._id} \n equipe: {self._equipe} \n urgency: {self._urgency}'
+            return f'Patient id: {self._id} \n equipe: {self._equipe} \n urgency: {self._urgency} \n nominal duration: {int(self._uncertainty_profile.get_nominal_value())} \n days waiting: {self.days_waiting}'
+        return f'Patient id: {self._id} \n equipe: {self._equipe} \n urgency: {self._urgency} \n days waiting: {self.days_waiting}'
 
     # Getters and setters
     def get_id(self):
@@ -110,3 +112,11 @@ class Patient():
     max_waiting_days = property(get_max_waiting_days, set_max_waiting_days)
 
 
+    def get_adversary_realization(self):
+        return self._adversary_realization
+    def set_adversary_realization(self, new:list):
+        self._adversary_realization = new
+    adversary_realization = property(get_adversary_realization, set_adversary_realization)
+    
+    def add_adversary_realization(self, new:float):
+        self.adversary_realization.append(new)

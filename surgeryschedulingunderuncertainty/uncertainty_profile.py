@@ -15,12 +15,11 @@ class UncertaintyProfile(ABC):
         self._nominal_value = nominal_value
         pass
 
+    # Getters and setters
     def get_nominal_value(self):
         return self._nominal_value
-    
     def set_nominal_value(self, new:float):
         self._nominal_value = new
-    
     nominal_value = property(get_nominal_value, set_nominal_value)
 
     # Abstract methods
