@@ -70,10 +70,10 @@ def chanceConstraintRule(robustness_overtime):
 # BS robustness
 
 def dualCapacityRule(model, b):  # controllare le t[i]
-    return sum(model.t[i] * model.x[b,i] for i in model.I) + model.Gamma*model.xi[b] + sum(model.pi[b,i] for i in model.I) <= model.g[b]
+    return sum(model.t[i] * model.x[b,i] for i in model.I) + model.gamma[b]*model.xi[b] + sum(model.pi[b,i] for i in model.I) <= model.g[b]
 
 def dualDefinitionRule(model, b, i):
-    return model.xi[b] + model.pi[b,i] >= model.t[i]*model.x[b,i] # rimettere il surplus al posto della t[i]
+    return model.xi[b] + model.pi[b,i] >= model.time_increment[b]*model.x[b,i]
 
 
 

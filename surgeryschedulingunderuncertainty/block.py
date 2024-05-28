@@ -83,9 +83,6 @@ class MasterBlock(Block):
         self._order_in_master = new
     order_in_master = property(get_order_in_master, set_order_in_master)
     
-    def BSParameters(times_mean:float, patient_std:float):
-        
-        for gamma in range
 
 
 

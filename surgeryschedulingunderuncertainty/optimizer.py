@@ -519,14 +519,13 @@ class VanillaImplementor(Optimizer):
 '''
 
 
-class BSImplementor(Optimizer):
+class BudgetSet(Optimizer):
 
-    def __init__(self, task:Task, implementor: Implementor, adversary: Adversary, description = ""):
+    def __init__(self, task:Task, implementor: Implementor, description = ""):
 
         super().__init__(task, description)
         
         self._implementor = implementor
-        self._adversary = adversary
 
         self._instance_data = None
 
@@ -537,31 +536,32 @@ class BSImplementor(Optimizer):
     #    return True
 
     # Abstract methods implementation
-    def run(self, max_loops:int):
+    def run(self):
         
         # non qui
         import numpy as np
     
         # param setup    
-        for block in self.task.master.blocks: 
-            for patient in self.task.patients:
-                
-                patient_times = []
-                
+        for block in self._task.master_schedule.blocks: 
+
+            # Save nominal times of the patients
+            patient_times = []
+
+            # Check for patient compatible with the block
+            for patient in self._task.patients:                
                 if patient.equipe in block.equipes:
-                    patient_times.append(patient.unicertanty_profile.nominal_value)
-                
+                    patient_times.append(patient.uncertainty_profile.nominal_value)
+             
+            # Calculate parameters   
             times_mean = np.mean(patient_times)
             times_std = np.std(patient_times)/len(patient_times)
             
             block.robustness_budget_set.update({'mean':times_mean,
                                                 'std':times_std})
             
+            
             for gamma in range(2, self.task.gamma_max +1 ): # inizio da 2 perché se è 1 non posso metterlo a zero
-                block.duration
-                self.task.robustness_overtime
-                self.task.robustness_risk
-                
+
                 distribution = ss.norm(loc = gamma*times_mean, scale = times_std)
                 
                 probability = 1-distribution.cdf(block.duration + self.task.robustness_overtime)
@@ -569,9 +569,7 @@ class BSImplementor(Optimizer):
                 if probability > self.task.robustness_risk: # TODO: maggiore o maggiore-uguale?
                     
                     chosed_gamma  = gamma-1
-                    
-                    # TODO: this is not patient-dependent
-                    
+                                        
                     time_increment = (block.duration*self.task.robustness_overtime)/chosed_gamma
                     
                     block.robustness_budget_set.update({'gamma':chosed_gamma,
@@ -595,7 +593,7 @@ class BSImplementor(Optimizer):
 
     # Specific methods
     def create_instance(self):
-        
+                
         master_schedule = self._task.get_master_schedule()
         
         # Parameters for sets
@@ -637,7 +635,7 @@ class BSImplementor(Optimizer):
         for b in range(n_schedule_blocks):
             
             master_block_index = b % n_master_blocks
-
+            
             update_dictionary.update \
                     ({(b + 1): master_blocks[master_block_index].robustness_budget_set.get('gamma')})
                 
