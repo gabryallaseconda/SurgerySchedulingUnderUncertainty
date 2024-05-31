@@ -566,14 +566,14 @@ class BudgetSet(Optimizer):
                 
                 probability = 1-distribution.cdf(block.duration + self.task.robustness_overtime)
                 
-                if probability > self.task.robustness_risk: # TODO: maggiore o maggiore-uguale?
+                if probability >= self.task.robustness_risk: # TODO: maggiore o maggiore-uguale? meglio maggiore uguale
                     
-                    chosed_gamma  = gamma-1
+                    chosed_gamma = gamma - 1 
                                         
-                    time_increment = (block.duration*self.task.robustness_overtime)/chosed_gamma
+                    #time_increment = (block.duration+self.task.robustness_overtime)/chosed_gamma 
                     
-                    block.robustness_budget_set.update({'gamma':chosed_gamma,
-                                                        'time_increment':time_increment})
+                    block.robustness_budget_set.update({'gamma':chosed_gamma})
+                                                        #'time_increment':time_increment}) # time increment va calcolato per ogni paziente in funzione della sua distribuzione di probabilità in funzione del rischio e della media del paziente
                     
                     
             
