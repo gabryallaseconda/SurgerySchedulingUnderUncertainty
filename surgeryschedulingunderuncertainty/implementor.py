@@ -263,7 +263,7 @@ class BSImplementor(Implementor): # Budget Set
 
         # Variables
         self._model.x = pyo.Var(self._model.B, self._model.I, within=pyo.Binary)
-        self._model.q = pyo.Var(self._model.B, self._model.I, within=pyo.NonNegativeReals)
+        #self._model.q = pyo.Var(self._model.B, self._model.I, within=pyo.NonNegativeReals) # Non viene usata in questo modello
         self._model.y = pyo.Var(self._model.I, within=pyo.NonNegativeReals)
         self._model.z = pyo.Var(self._model.I, within=pyo.NonNegativeReals)
         
