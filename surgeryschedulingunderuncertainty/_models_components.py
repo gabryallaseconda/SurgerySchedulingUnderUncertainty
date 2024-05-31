@@ -53,6 +53,7 @@ def oneSurgeryRule(model, i): # one surgery
 def YVarDefRule(model, i): # Y variable definition # TODO: sistemare questo scempio. cosa fare se i giorni contengono un numero diverso di blocchi?
     return model.y[i] == sum( (int(b/ (model.n_blocks/model.n_days) )+1) * model.x[b, i] for b in model.B) + \
                 (model.n_days + 1) * (1 - sum(model.x[b, i] for b in model.B))
+    # MD + GC: proposta di creare un parametro day[b] dove per ogni b tiene conto del numero del giorno.
 
 # Chance Constraints - Time Extension variable q
 
@@ -70,10 +71,12 @@ def chanceConstraintRule(robustness_overtime):
 # BS robustness
 
 def dualCapacityRule(model, b):  # controllare le t[i]
-    return sum(model.t[i] * model.x[b,i] for i in model.I) + model.gamma[b]*model.xi[b] + sum(model.pi[b,i] for i in model.I) <= model.g[b]
+    return sum(model.t[i] * model.x[b,i] for i in model.I) + model.gamma[b]*model.xi[b] + \
+               sum(model.pi[b,i] for i in model.I) <= model.g[b]
 
 def dualDefinitionRule(model, b, i):
-    return model.xi[b] + model.pi[b,i] >= model.time_increment[b]*model.x[b,i]
+    return model.xi[b] + model.pi[b,i] >= model.time_increment[b]*model.x[b,i] 
+    # La sovraelongazione è del paziente, non del blocco. model.time_increment[b] deve diventare di [i] Parliamone. 
 
 
 
