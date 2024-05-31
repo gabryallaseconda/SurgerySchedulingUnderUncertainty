@@ -568,7 +568,7 @@ class BudgetSet(Optimizer):
                 
                 if probability > self.task.robustness_risk: # TODO: maggiore o maggiore-uguale?
                     
-                    chosed_gamma  = gamma-1
+                    chosed_gamma  = gamma # -1, +1, parliamone
                                         
                     time_increment = (block.duration*self.task.robustness_overtime)/chosed_gamma
                     
