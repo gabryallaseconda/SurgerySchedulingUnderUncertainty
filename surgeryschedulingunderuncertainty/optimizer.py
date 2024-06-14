@@ -200,6 +200,25 @@ class ImplementorAdversary(Optimizer):
                     )
 
             instance.update({'eps': update_dictionary})
+            
+        # Parameter day
+
+        update_dictionary = {}
+        day = 0
+        old_weekday = 0
+
+        for b in range(n_schedule_blocks):
+            master_block_index = b % n_master_blocks
+            weekday = master_blocks[master_block_index].weekday
+            
+            if weekday != old_weekday:
+                day += 1
+            
+            update_dictionary.update({b + 1: day})
+
+        instance.update({'day': update_dictionary})
+        
+        
 
         instance.update({
             'n_days': {None: n_days},
@@ -367,6 +386,23 @@ class VanillaImplementor(Optimizer):
             update_dictionary.update({i + 1: patient.max_waiting_days})
 
         instance.update({'l': update_dictionary})
+        
+        # Parameter day
+
+        update_dictionary = {}
+        day = 0
+        old_weekday = 0
+
+        for b in range(n_schedule_blocks):
+            master_block_index = b % n_master_blocks
+            weekday = master_blocks[master_block_index].weekday
+            
+            if weekday != old_weekday:
+                day += 1
+            
+            update_dictionary.update({b + 1: day})
+
+        instance.update({'day': update_dictionary})
         
         # Parameter f (percentage point given overtime risk)
         
@@ -568,22 +604,69 @@ class BudgetSet(Optimizer):
                 
                 if probability > self.task.robustness_risk: # TODO: maggiore o maggiore-uguale?
                     
-                    chosed_gamma  = gamma-1
+                    #chosed_gamma  = gamma-1
+                    chosed_gamma = gamma + self.task.gamma_variation
                                         
-                    time_increment = (block.duration*self.task.robustness_overtime)/chosed_gamma
+                    block.robustness_budget_set.update({'gamma':chosed_gamma})
+                                                        
+                                                        
+                                                        #,
+                                                        #'time_increment': time_increment}) # this will be useless
+
+                                                        
+                    # time_increment = (self.task.robustness_overtime)/chosed_gamma
                     
-                    block.robustness_budget_set.update({'gamma':chosed_gamma,
-                                                        'time_increment':time_increment})
                     
                     
+                    
+                    # block.robustness_budget_set.update({'gamma':chosed_gamma,
+                    #                                     'time_increment': time_increment}) # this will be useless
+                    
+                    # time_increment = time_increment*len(patient_times) # take the total increment considering all the compatible patients
+                    # time_increment = time_increment/sum(patient_times) # normalize on the sum o total
+                    
+                    # for patient in self._task.patients:                
+                    #     if patient.equipe in block.equipes:
+                            
+                    #         patient.uncertainty_profile.budget_set_time_increment = time_increment*patient.uncertainty_profile.nominal_value
+
+
+
+
+                    # ### gamma =about= robustness_risk / time_increment(calcolato sui pazienti)
+                    
+                    # # total_time_increment = time_increment * num_pazienti_compatibili nel blocco
+                    
+                    # # percentuale di *incremento* = totale time increment / totale tempo nominale   
+
+                    # ### durata_blocco * perc_di_incremento <= robustness_overtime   
+
+                    # print(chosed_gamma)
+                    # print(block.equipes)
+                    # print('----')
+                    
+                    # break
+                    
+                    
+        
+            # per ogni singolo paziente:
+                # prendo distribuzione del paziente, percentile 1- self.task.robustness_risk
+                # time increment = percentile (riga precedete) -  tempo nominal del paziente 
+                
+        for patient in self._task.patients:
+            percentile = patient.uncertainty_profile.percent_point_function.pdf(1-self.task.robustness_risk)  # TODO: 
+            time_increment = percentile - patient.uncertainty_profile.nominal_value
+            patient.uncertainty_profile.budget_set_time_increment = time_increment
+            
             
             
         # Creating instance
         self.create_instance()
         
-        print('implementor')
         solved_instance = self._implementor.run()
-        schedule =  Schedule(task = self.task, solved_instance = solved_instance)
+        
+        schedule =  Schedule(task = self.task, 
+                             solved_instance = solved_instance)
         
         return schedule
     
@@ -642,17 +725,24 @@ class BudgetSet(Optimizer):
         instance.update({'gamma': update_dictionary})
         
         
-        update_dictionary = {}
+        # update_dictionary = {}
         
-        for b in range(n_schedule_blocks):
+        # for b in range(n_schedule_blocks):
             
-            master_block_index = b % n_master_blocks
+        #     master_block_index = b % n_master_blocks
 
-            update_dictionary.update \
-                    ({(b + 1): master_blocks[master_block_index].robustness_budget_set.get('gamma')})
+        #     update_dictionary.update \
+        #             ({(b + 1): master_blocks[master_block_index].robustness_budget_set.get('time_increment')})
                 
-        instance.update({'time_increment': update_dictionary})
+        # instance.update({'time_increment': update_dictionary})
         
+        update_dictionary = {} # questo è sbagliato: cosa succede se un paziente appartiene a più blocchi?
+        for i, patient in enumerate(patients):
+            
+            update_dictionary.update(
+                {(i+1): patient.uncertainty_profile.budget_set_time_increment}
+            )
+        instance.update({'time_increment': update_dictionary})
         
         
         # Parameter a (compatibility)
@@ -713,6 +803,22 @@ class BudgetSet(Optimizer):
 
         instance.update({'l': update_dictionary})
         
+        # Parameter day
+
+        update_dictionary = {}
+        day = 0
+        old_weekday = 0
+
+        for b in range(n_schedule_blocks):
+            master_block_index = b % n_master_blocks
+            weekday = master_blocks[master_block_index].weekday
+            
+            if weekday != old_weekday:
+                day += 1
+            
+            update_dictionary.update({b + 1: day})
+
+        instance.update({'day': update_dictionary})
         
         #         self._model.eps = pyo.Param(self._model.I, self._model.K, within=pyo.NonNegativeReals)
         # Parameter esp - adversary realizations

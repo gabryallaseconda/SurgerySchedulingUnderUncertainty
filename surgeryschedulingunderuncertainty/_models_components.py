@@ -50,9 +50,14 @@ def compatibilityRule(model, b, i):
 def oneSurgeryRule(model, i): # one surgery
     return sum(model.x[b, i] for b in model.B) <= 1
 
+#def YVarDefRule(model, i): # Y variable definition # TODO: sistemare questo scempio. cosa fare se i giorni contengono un numero diverso di blocchi?
+#    return model.y[i] == sum( (int(b/ (model.n_blocks/model.n_days) )+1) * model.x[b, i] for b in model.B) + \
+#                (model.n_days + 1) * (1 - sum(model.x[b, i] for b in model.B))
+                
 def YVarDefRule(model, i): # Y variable definition # TODO: sistemare questo scempio. cosa fare se i giorni contengono un numero diverso di blocchi?
-    return model.y[i] == sum( (int(b/ (model.n_blocks/model.n_days) )+1) * model.x[b, i] for b in model.B) + \
+    return model.y[i] == sum( model.day[b] * model.x[b, i] for b in model.B) + \
                 (model.n_days + 1) * (1 - sum(model.x[b, i] for b in model.B))
+                
 
 # Chance Constraints - Time Extension variable q
 
@@ -67,13 +72,25 @@ def chanceConstraintRule(robustness_overtime):
         return (model.g[b]+robustness_overtime)*model.q[b,i] >= model.f[i]*model.x[b,i]
     return internalRule
 
+
+
 # BS robustness
 
-def dualCapacityRule(model, b):  # controllare le t[i]
-    return sum(model.t[i] * model.x[b,i] for i in model.I) + model.gamma[b]*model.xi[b] + sum(model.pi[b,i] for i in model.I) <= model.g[b]
+# def dualCapacityRule(model, b):  
+#     return sum(model.t[i] * model.x[b,i] for i in model.I) + model.gamma[b]*model.xi[b] +\
+#         sum(model.pi[b,i] for i in model.I) <= model.g[b]  
+
+def dualCapacityRule(robustness_overtime):
+    def internalRule(model, b):
+        return sum(model.t[i] * model.x[b,i] for i in model.I) + model.gamma[b]*model.xi[b] +\
+            sum(model.pi[b,i] for i in model.I) <= model.g[b]  + robustness_overtime
+    return internalRule
+
+
 
 def dualDefinitionRule(model, b, i):
-    return model.xi[b] + model.pi[b,i] >= model.time_increment[b]*model.x[b,i]
+    return model.xi[b] + model.pi[b,i] >= model.time_increment[i]*model.x[b,i]  # prima della modifica, time_increment[b]
+
 
 
 

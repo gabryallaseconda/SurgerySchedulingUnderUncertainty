@@ -51,7 +51,7 @@ class Master():
         self._blocks = []
         
         order_in_master = 0
-        
+                
         for weekday in range(1, self._week_length + 1):
             weekday_data = table[table['weekday'] == weekday]
             

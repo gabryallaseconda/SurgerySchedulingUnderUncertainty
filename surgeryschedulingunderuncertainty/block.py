@@ -41,11 +41,9 @@ class Block(ABC):
     room = property(get_room, set_room)
     
     def get_weekday(self):
-        return self._weekday
-    
+        return self._weekday    
     def set_weekday(self, new: int):
-        self._weekday = new
-    
+        self._weekday = new   
     weekday = property(get_weekday, set_weekday)
 
 
@@ -62,8 +60,8 @@ class Block(ABC):
 
 class MasterBlock(Block):
 
-    def __init__(self, duration: int, equipes: list[str], room: str, weekday: int, order_in_day: int, order_in_master: int):
-        super().__init__(duration=duration, equipes=equipes, room=room, weekday=weekday, order_in_day=order_in_day)
+    def __init__(self, duration: int, equipes: list[str], room: str, weekday: int,  order_in_day: int, order_in_master: int):
+        super().__init__(duration=duration, equipes=equipes, room=room, weekday=weekday,  order_in_day=order_in_day)
         self._order_in_master = order_in_master
         self.robustness_budget_set = {}
 
@@ -83,6 +81,7 @@ class MasterBlock(Block):
         self._order_in_master = new
     order_in_master = property(get_order_in_master, set_order_in_master)
     
+
 
 
 
