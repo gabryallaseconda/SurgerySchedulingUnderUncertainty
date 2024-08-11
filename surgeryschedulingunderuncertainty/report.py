@@ -55,7 +55,7 @@ class ReportForImplementorAdversary(Report):
         
         self._start_iterations_time = None
         
-        self._total_duration = 0
+        self._total_time = 0
         self._n_iterations = 0
         self._list_of_iterations_times = []
         self._list_of_iterations_durations = []
@@ -66,21 +66,20 @@ class ReportForImplementorAdversary(Report):
         if self._start_time is not None:
             raise ValueError("Reporting can be started only once.")
         
-        print("hello!")
+        self._start_time = datetime.now()
         
-        self._total_duration = datetime.now()
         
     def end_reporting(self):
         if self._start_time is None:
-            print(self._start_time)
-            print('point 2')
             raise ValueError("Reporting must be started before being ended.")
-                
-    
         if self._end_time is not None:
             raise ValueError("Reporting can be ended only once.")
+        
         self._end_time = datetime.now()
+        print(self._end_time)
+        print(self._start_time)
         self._total_time = (self._end_time - self._start_time).total_seconds() / 60
+        print(self._total_time)
         
     def start_iterations_reporting(self):
         if self._start_iterations_time is not None:
@@ -107,7 +106,7 @@ class ReportForImplementorAdversary(Report):
     def export_report(self):
         
         data_dictionary = {
-            'total duration': self._total_duration,
+            'total duration': self._total_time,
             'start time': self._start_time,
             'end time': self._end_time,
             'number of iterations' : len(self._list_of_iterations_flags),
@@ -135,14 +134,14 @@ class ReportForDirectOptimization(Report):
         self._start_time = None
         self._end_time = None
                 
-        self._total_duration = 0
+        self._total_time = 0
 
         
         
     def start_reporting(self):
         if self._start_time is not None:
             raise ValueError("Reporting can be started only once.")
-        self._total_duration = datetime.now()
+        self._start_time = datetime.now()
         
     def end_reporting(self):
         if self._start_time is None:
@@ -155,7 +154,7 @@ class ReportForDirectOptimization(Report):
     def export_report(self):
         
         data_dictionary = {
-            'total duration': self._total_duration,
+            'total duration': self._total_time,
             'start time': self._start_time,
             'end time': self._end_time,
         }

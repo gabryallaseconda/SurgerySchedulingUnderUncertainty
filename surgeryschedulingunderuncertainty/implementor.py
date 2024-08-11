@@ -235,6 +235,6 @@ class BudgetSetImplementor(Implementor):
         self._model.compatibility = pyo.Constraint(self._model.B, self._model.I, rule=compatibilityRule)
 
         #self._model.dualCapacity = pyo.Constraint(self._model.B, rule=dualCapacityRule)
-        self._model.dualCapacity = pyo.Constraint(self._model.B, self._model.I, rule=dualCapacityRule(self._task.robustness_overtime))
+        self._model.dualCapacity = pyo.Constraint(self._model.B, rule=dualCapacityRule(self._task.robustness_overtime))
         self._model.dualDefinition = pyo.Constraint(self._model.B, self._model.I, rule=dualDefinitionRule)  
 

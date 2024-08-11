@@ -2,9 +2,11 @@
 from abc import ABC, abstractmethod
 
 # Packages
-import pyomo.environ as pyo  # not used for the implementor adversary
+#import pyomo.environ as pyo  # not used for the implementor adversary
 import numpy as np
 import scipy.stats as ss
+import numpy as np
+
 
 # Modules
 from .implementor import Implementor, ChanceConstraintsImplementor
@@ -304,8 +306,11 @@ class VanillaImplementor(Optimizer):
         self.create_instance()
         
         self._report.start_reporting()
-        
-        schedule = self._implementor.run()
+                
+        #schedule = self._implementor.run()
+
+        solved_instance = self._implementor.run()
+        schedule = Schedule(task = self.task, solved_instance = solved_instance)
         
         self._report.end_reporting()
         
@@ -422,10 +427,15 @@ class VanillaImplementor(Optimizer):
             
             if weekday != old_weekday:
                 day += 1
+                
+            old_weekday = weekday
             
             update_dictionary.update({b + 1: day})
 
         instance.update({'day': update_dictionary})
+        
+        
+
         
         # Parameter f (percentage point given overtime risk)
         
@@ -488,13 +498,12 @@ class BudgetSet(Optimizer):
     # Abstract methods implementation
     def run(self):
         
-        # non qui
-        import numpy as np
-    
+        self._report.start_reporting()
+            
         # param setup    
         for block in self._task.master_schedule.blocks: 
 
-            # Save nominal times of the patients
+            # List to contain the nominal times of the patients
             patient_times = []
 
             # Check for patient compatible with the block
@@ -516,64 +525,20 @@ class BudgetSet(Optimizer):
                 
                 probability = 1-distribution.cdf(block.duration + self.task.robustness_overtime)
                 
-                if probability > self.task.robustness_risk: # TODO: maggiore o maggiore-uguale?
+                if probability > self.task.robustness_risk:
                     
                     #chosed_gamma  = gamma-1
                     chosed_gamma = gamma + self.task.gamma_variation
                                         
                     block.robustness_budget_set.update({'gamma':chosed_gamma})
-                                                        
-                                                        
-                                                        #,
-                                                        #'time_increment': time_increment}) # this will be useless
 
-                                                        
-                    # time_increment = (self.task.robustness_overtime)/chosed_gamma
-                    
-                    
-                    
-                    
-                    # block.robustness_budget_set.update({'gamma':chosed_gamma,
-                    #                                     'time_increment': time_increment}) # this will be useless
-                    
-                    # time_increment = time_increment*len(patient_times) # take the total increment considering all the compatible patients
-                    # time_increment = time_increment/sum(patient_times) # normalize on the sum o total
-                    
-                    # for patient in self._task.patients:                
-                    #     if patient.equipe in block.equipes:
-                            
-                    #         patient.uncertainty_profile.budget_set_time_increment = time_increment*patient.uncertainty_profile.nominal_value
-
-
-
-
-                    # ### gamma =about= robustness_risk / time_increment(calcolato sui pazienti)
-                    
-                    # # total_time_increment = time_increment * num_pazienti_compatibili nel blocco
-                    
-                    # # percentuale di *incremento* = totale time increment / totale tempo nominale   
-
-                    # ### durata_blocco * perc_di_incremento <= robustness_overtime   
-
-                    # print(chosed_gamma)
-                    # print(block.equipes)
-                    # print('----')
-                    
-                    # break
-                    
-                    
-        
-            # per ogni singolo paziente:
-                # prendo distribuzione del paziente, percentile 1- self.task.robustness_risk
-                # time increment = percentile (riga precedete) -  tempo nominal del paziente 
-                
+        # Now, we add the time increment specifically for each patient
         for patient in self._task.patients:
-            percentile = patient.uncertainty_profile.percent_point_function.pdf(1-self.task.robustness_risk)  
+            percentile = patient.uncertainty_profile.percent_point_function(1-self.task.robustness_risk)  
             time_increment = percentile - patient.uncertainty_profile.nominal_value
             patient.uncertainty_profile.budget_set_time_increment = time_increment
-            
-            
-            
+             
+                        
         # Creating instance
         self.create_instance()
         
@@ -582,7 +547,9 @@ class BudgetSet(Optimizer):
         schedule =  Schedule(task = self.task, 
                              solved_instance = solved_instance)
         
-        return schedule
+        self._report.end_reporting()
+        
+        return schedule.export_schedule(), self._report.export_report()
     
 
         
@@ -729,6 +696,8 @@ class BudgetSet(Optimizer):
             
             if weekday != old_weekday:
                 day += 1
+                
+            old_weekday = weekday
             
             update_dictionary.update({b + 1: day})
 
@@ -778,17 +747,5 @@ class BudgetSet(Optimizer):
         self._implementor.instance_data = self._instance
 
 
-    def run_implementor(self):
-        solved_instance = self._implementor.run()
-        return Schedule(task = self.task, solved_instance = solved_instance)
-        
-
-    def run_adversary(self, schedule):
-        # return self.adversary.run(schedule)
-        pass
-
-    def update_instance(self, adversary_fragilities):
-        # update self.instance_data
-        pass
 
 
