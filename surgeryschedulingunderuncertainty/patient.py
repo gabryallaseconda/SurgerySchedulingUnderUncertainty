@@ -27,6 +27,7 @@ class Patient():
         self._days_waiting = days_waiting
         self._max_waiting_days = max_waiting_days
         
+        # Store all the realization produced by the adversary (only for realization-based adversary algorithms)
         self._adversary_realization = []
 
     def __str__(self):

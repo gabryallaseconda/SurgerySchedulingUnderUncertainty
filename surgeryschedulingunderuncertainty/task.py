@@ -188,11 +188,15 @@ class Task():
     def add_adversary_realization(self, adversary_realization: dict):
         patients_ids = adversary_realization.keys()
         
+        # Loop on the patients inside the task
         for patient in self.patients:
+            # Check if the patient is inside the realization
             if patient.id in patients_ids:
-                patient.add_adversary_realization(adversary_realization.get(patients_ids))
+                # If it is, assign the realization as the value suggested by the adversary
+                patient.add_adversary_realization(adversary_realization.get(patient.id))
             else:
-                patient.add_adversary_realization(0.0)
+                # If not, assign zero as a realization
+                patient.add_adversary_realization(0.0) 
             
         self._num_adversary_realizations += 1
         

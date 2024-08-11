@@ -86,6 +86,8 @@ class LogNormalDistribution(UncertaintyProfile):
         samples = np.exp(samples)
 
         return samples
+    
+        # return ss.lognorm.rvs(std, loc=0, scale=mean, size=size, random_state=None)
 
     def percent_point_function(self, probability):
         """

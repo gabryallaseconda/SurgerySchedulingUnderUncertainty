@@ -12,6 +12,7 @@ from .adversary import Adversary, EquiprobableVertex
 from .task import Task
 from .predictive_model import PredictiveModel
 from .schedule import Schedule
+from .report import ReportForImplementorAdversary, ReportForDirectOptimization
 
 
 
@@ -55,6 +56,8 @@ class ImplementorAdversary(Optimizer):
         self._adversary = adversary
 
         self._instance_data = None
+        
+        self._report = ReportForImplementorAdversary(task=task, description=description)
 
     # Getters and setters
 
@@ -65,6 +68,8 @@ class ImplementorAdversary(Optimizer):
     # Abstract methods implementation
     def run(self, max_loops:int):
         
+        self._report.start_reporting()
+        self._report.start_iterations_reporting()
         
         # Main implementor adversary loop
         for _ in range(max_loops):
@@ -81,12 +86,18 @@ class ImplementorAdversary(Optimizer):
             print('adversary')
             adversary = EquiprobableVertex(schedule=schedule, task = self.task)
             robustness_flag, fragile_blocks = adversary.run()
+            
+            # Save iteration duration and flag
+            self._report.report_iteration(flag = robustness_flag)
         
             # Exit the loop if the schedule is robust and do not need other iterations
-            if robustness_flag == True:
+            if robustness_flag:
                 break
-
-        return schedule
+            
+            
+            
+        self._report.end_reporting()
+        return schedule.export_schedule(), self._report.export_report() #, solved_instance
 
     # Specific methods
     def create_instance(self):
@@ -213,6 +224,8 @@ class ImplementorAdversary(Optimizer):
             
             if weekday != old_weekday:
                 day += 1
+                
+            old_weekday = weekday
             
             update_dictionary.update({b + 1: day})
 
@@ -275,23 +288,33 @@ class VanillaImplementor(Optimizer):
         self._implementor = implementor # TODO add validation and raise error if there is no task argument
         
         self._instance_data = None
+        
+        self._report = ReportForDirectOptimization(task=task, description=description)
+
 
     # Getters and setters
 
     # Abstract methods implementation
     def run(self):
         
+        
+
+        
         # Creating instance
         self.create_instance()
         
+        self._report.start_reporting()
+        
         schedule = self._implementor.run()
         
-        return schedule
+        self._report.end_reporting()
+        
+        return schedule.export_schedule(), self._report.export_report()
 
     # Specific methods
     def create_instance(self):
         """
-        Qui il metodo è modificato per permettere la chance constraints. Se va modificato va modificato per tutti i tipi di implemnentor...
+        Qui il metodo è modificato per permettere la chance constraints. Se va modificato va modificato per tutti i tipi di implementor...
         """
         
         master_schedule = self._task.get_master_schedule()
@@ -441,118 +464,6 @@ class VanillaImplementor(Optimizer):
         return Schedule(task = self.task, solved_instance = solved_instance)
         
 
-    '''
-    def __init__(self, task:Task, description = ""):
-        
-        from ._models_components import (
-            ObjRule_standard,
-            ObjRule_count,
-            delayDetectorRule,
-            capacityRule,
-            capacityOvertimeRule,
-            compatibilityRule,
-            oneSurgeryRule,
-            YVarDefRule
-        )
-
-        self._description = description
-        self._instance_data = None
-        
-        # Model definition
-        
-        self._model = pyo.AbstractModel() # pyomo abstract model
-        
-        # Sets
-        self._model.n_days = pyo.Param(within=pyo.NonNegativeIntegers)
-        self._model.n_rooms = pyo.Param(within=pyo.NonNegativeIntegers)
-        self._model.n_blocks = pyo.Param(within=pyo.NonNegativeIntegers)
-        self._model.n_pats = pyo.Param(within=pyo.NonNegativeIntegers)
-        self._model.n_realizations = pyo.Param(within=pyo.NonNegativeIntegers)
-
-        #self._model.D = pyo.RangeSet(1, self._model.n_days)
-        #self._model.J = pyo.RangeSet(1, self._model.n_rooms)
-        self._model.B = pyo.RangeSet(1, self._model.n_blocks)
-        self._model.I = pyo.RangeSet(1, self._model.n_pats)
-        self._model.K = pyo.RangeSet(1, self._model.n_realizations)
-
-        # Parameters
-        self._model.t = pyo.Param(self._model.I, within=pyo.NonNegativeReals)
-        self._model.w = pyo.Param(self._model.I, within=pyo.NonNegativeReals)
-        self._model.l = pyo.Param(self._model.I, within=pyo.NonNegativeReals)
-        self._model.u = pyo.Param(self._model.I, within=pyo.NonNegativeReals)
-
-        self._model.eps = pyo.Param(self._model.I, self._model.K, within=pyo.NonNegativeReals)
-
-        #self._model.g = pyo.Param(self._model.D, self._model.J, self._model.B, within=pyo.NonNegativeIntegers)
-        #self._model.a = pyo.Param(self._model.D, self._model.J, self._model.B, self._model.I, within=pyo.Binary)
-        self._model.g = pyo.Param(self._model.B, within=pyo.NonNegativeIntegers)
-        self._model.a = pyo.Param(self._model.B, self._model.I, within=pyo.Binary)
-
-        self._model.c_exclusion = pyo.Param(within=pyo.NonNegativeReals)
-        self._model.c_delay = pyo.Param(within=pyo.NonNegativeReals)
-
-        # Variables
-        #self._model.x = pyo.Var(self._model.D, self._model.J, self._model.B, self._model.I, within=pyo.Binary)
-        self._model.x = pyo.Var(self._model.B, self._model.I, within=pyo.Binary)
-        self._model.y = pyo.Var(self._model.I, within=pyo.NonNegativeReals)
-        self._model.z = pyo.Var(self._model.I, within=pyo.NonNegativeReals)
-
-        # Objective function
-        self._model.obj = pyo.Objective(rule=ObjRule_standard, sense=pyo.minimize)
-        
-        # Constraints
-        self._model.delayDetector = pyo.Constraint(self._model.I, rule=delayDetectorRule)
-        #self._model.capacity = pyo.Constraint(self._model.D, self._model.J, self._model.B, rule=capacityRule)
-        #self._model.capacityOvertime = pyo.Constraint(self._model.D, self._model.J, self._model.B, self._model.K, rule=capacityOvertimeRule)
-        #self._model.compatibility = pyo.Constraint(self._model.D, self._model.J, self._model.B, self._model.I, rule=compatibilityRule)
-        self._model.oneSurgery = pyo.Constraint(self._model.I, rule=oneSurgeryRule)
-        self._model.YVarDef = pyo.Constraint(self._model.I, rule=YVarDefRule)
-        
-        self._model.capacity = pyo.Constraint(self._model.B, rule=capacityRule)
-        self._model.capacityOvertime = pyo.Constraint(self._model.B, self._model.K, rule=capacityOvertimeRule)
-        self._model.compatibility = pyo.Constraint(self._model.B, self._model.I, rule=compatibilityRule)
-        
-
-
-    # Getters and setters
-    def get_description(self):
-        return self._description
-    
-    def set_description(self, new):
-        self._description = new
-
-    description = property(get_description, set_description)
-    
-    def get_instance_data(self):
-        return self._instance_data
-    
-    def set_instance_data(self, new):
-        self._instance_data = new
-
-    instance_data = property(get_instance_data, set_instance_data)
-
-    # Abstract methods
-
-    # General methods
-    def run(self): #!!!!!
-        # Instance creation
-        self._instance = self._model.create_instance(self.instance_data)
-
-        # Solver configuration
-        self._solver = pyo.SolverFactory('appsi_highs')
-        #solver.options['Threads'] = config['SOLVER']['SolverThreads']
-        #solver.options['TimeLimit'] = config['SOLVER']['SolverTimeLimit']
-        #solver.options['MIPGap'] = config['SOLVER']['SolverMIPGap']
-
-        # Solver launching
-        solver_result = self._solver.solve(self._instance, tee=False)
-        
-        # Saving data of the solution
-        self._instance.solutions.store_to(solver_result)
-
-        return self._instance # questa adrebbe processata dentro una schedula prima di procedere
-
-'''
 
 
 class BudgetSet(Optimizer):
@@ -564,6 +475,9 @@ class BudgetSet(Optimizer):
         self._implementor = implementor
 
         self._instance_data = None
+        
+        self._report = ReportForDirectOptimization(task=task, description=description)
+
 
     # Getters and setters
 
@@ -654,7 +568,7 @@ class BudgetSet(Optimizer):
                 # time increment = percentile (riga precedete) -  tempo nominal del paziente 
                 
         for patient in self._task.patients:
-            percentile = patient.uncertainty_profile.percent_point_function.pdf(1-self.task.robustness_risk)  # TODO: 
+            percentile = patient.uncertainty_profile.percent_point_function.pdf(1-self.task.robustness_risk)  
             time_increment = percentile - patient.uncertainty_profile.nominal_value
             patient.uncertainty_profile.budget_set_time_increment = time_increment
             

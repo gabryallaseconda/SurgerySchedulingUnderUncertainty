@@ -87,10 +87,14 @@ class MasterBlock(Block):
 
 class ScheduleBlock(Block):
 
-    def __init__(self, duration: int, equipes: list[str], room: str, weekday: int, order_in_day: int, 
+    def __init__(self, duration: int, equipes: list[str], room: str, weekday: int, 
+                 week: int, days_since_beginning:int, order_in_day: int, 
                  order_in_week: int, order_in_schedule: int, patients: list[Patient] = None):
         
         super().__init__(duration, equipes, room, weekday, order_in_day)
+        
+        self._week = week
+        self._days_since_beginning = days_since_beginning
         
         self._order_in_week = order_in_week
         self._order_in_schedule = order_in_schedule
@@ -100,6 +104,15 @@ class ScheduleBlock(Block):
             self._patients = patients
         else:
             self._patients = []
+            
+    def __str__(self) -> str:
+        #return super().__str__()
+        return f""" 
+    duration: {self.duration},
+    room: {self.room},
+    weekday: {self.weekday},
+    order_in_day: {self.order_in_day}
+        """
 
     # Getters and setters 
 
@@ -129,6 +142,52 @@ class ScheduleBlock(Block):
     def add_patient(self, new:Patient):
         self._patients.append(new)
         return True
+    
+    def retrieve_insights(self):
+        patients_ids = []
+        patients_durations = []
+        patients_urgencies = []
+        patients_max_waiting_days = []
+        patients_delay_in_days = []
+        patients_equipe = []
+        
+        for patient in self.patients:
+            patients_ids.append(patient.id)
+            patients_durations.append(patient.uncertainty_profile.nominal_value)
+            patients_urgencies.append(patient.urgency)
+            patients_max_waiting_days.append(patient.max_waiting_days)
+            patients_equipe.append(patient.equipe)
+
+            # Calculating delay
+            absolute_delay = - patient.max_waiting_days + patient.days_waiting + self._days_since_beginning
+            patients_delay_in_days.append(max(0, absolute_delay))
+            
+        
+        data_dict = {
+            'patients ids': patients_ids,
+            'patients durations (nominal)': patients_durations,
+            'patients urgencies': patients_urgencies,
+            'patients max waiting days': patients_max_waiting_days,
+            'patiens delay in days' : patients_delay_in_days,
+            'patient equipe' : patients_equipe,
+            
+            'total duration (nominal)' : sum(patients_durations),
+            
+            'block allocated duration' : self.duration,
+            
+            'room': self.room,
+            'weekday': self.weekday,
+            'order_in_day': self.order_in_day,
+            'week': self._week,
+            'days since beginning': self._days_since_beginning,
+            'equipes' : self.equipes,
+            
+            'overtime probability': 0,             # aggiungere la probabilità di sforamento?
+                
+        }
+        
+        
+        return data_dict
     
 
     def proportion_urgency(self):

@@ -69,6 +69,7 @@ class Master():
                                     weekday=row.weekday,
                                     order_in_day=order_in_day, 
                                     order_in_master=order_in_master)
+                
                 self._blocks.append(block)
                 order_in_master += 1
                 

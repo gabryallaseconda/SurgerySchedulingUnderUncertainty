@@ -72,8 +72,13 @@ class EquiprobableVertex(Adversary):
 
         # Run check and the possible generation of a new realization on each block in the schedule
         #for block, info in schedule.items():
+        
+        
         for block in self.schedule._blocks: 
             
+            #print("point1")
+            #print(block)
+
             #patients = block.patients
 
             # Check if in the block there is only one patient: in this case no check sould be performed.
@@ -94,6 +99,9 @@ class EquiprobableVertex(Adversary):
                 # Use a probabilistic tool to sample from patient duration distribution
                 sample = patient.uncertainty_profile.sample(size = 10000)  # TODO mettere nelle impostazioni generali o nel task
                 
+                #print("point2")
+                #print(patient.uncertainty_profile)
+                                
                 # Store the samples of each patient
                 samples.append(sample)
                 # Store the ordered samples of each patient
@@ -119,6 +127,9 @@ class EquiprobableVertex(Adversary):
 
             # This is where the check on the schedule is performed
             # from the instance_config, here is get the overtime
+            
+            #print("point3")
+            #print(Z_bar, " . ", block.duration, " . ", self.task.robustness_overtime)
             
             #if Z_bar >= info.get('block_time') + self._task.robustness_overtime:
             if Z_bar >= block.duration + self.task.robustness_overtime:
