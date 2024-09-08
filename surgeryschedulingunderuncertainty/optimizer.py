@@ -18,6 +18,16 @@ from .report import ReportForImplementorAdversary, ReportForDirectOptimization
 
 
 
+ungency_mapper = {
+    0:45,
+    1:12,
+    2:6,
+    3:2,
+    4:1
+    
+}
+
+
 class Optimizer(ABC):
     
     def __init__(self, task, description = ""):
@@ -99,7 +109,7 @@ class ImplementorAdversary(Optimizer):
             
             
         self._report.end_reporting()
-        return schedule.export_schedule(), self._report.export_report() #, solved_instance
+        return schedule.export_schedule(), self._report.export_report(), solved_instance
 
     # Specific methods
     def create_instance(self):
@@ -108,12 +118,12 @@ class ImplementorAdversary(Optimizer):
         
         # Parameters for sets
         n_days = self._task.num_of_weeks * master_schedule.get_week_length()
-        
+                
         #n_week_days = master_schedule.get_week_length
         n_rooms = master_schedule.get_num_of_rooms()
                     
-        c_exclusion = 1  #TODO
-        c_delay = 1  #TODO
+        c_exclusion = 2  #TODO
+        c_delay = 2  #TODO
         
         # Get patients
         patients = self._task.get_patients()
@@ -129,20 +139,18 @@ class ImplementorAdversary(Optimizer):
 
         # Parameter g (gamma - capacity)
         update_dictionary = {}
-
         for b in range(n_schedule_blocks):
             
             master_block_index = b % n_master_blocks
 
             update_dictionary.update \
                     ({(b + 1): master_blocks[master_block_index].duration })
-                
+                                    
         instance.update({'g': update_dictionary})
         
-        # Parameter a (compatibility)
-
-        update_dictionary = {}
         
+        # Parameter a (compatibility)
+        update_dictionary = {}
         for b in range(n_schedule_blocks):
             
             master_block_index = b % n_master_blocks
@@ -171,11 +179,10 @@ class ImplementorAdversary(Optimizer):
         instance.update({'t': update_dictionary})
 
         # Parameter u (Urgency)
-
         update_dictionary = {}
 
         for i, patient in enumerate(patients):
-            update_dictionary.update({i + 1: patient.urgency})
+            update_dictionary.update({i + 1: ungency_mapper.get(patient.urgency)})
 
         instance.update({'u': update_dictionary})
 
@@ -261,7 +268,7 @@ class ImplementorAdversary(Optimizer):
 
     def run_implementor(self):
         solved_instance = self._implementor.run()
-        return Schedule(task = self.task, solved_instance = solved_instance)
+        return Schedule(task = self.task, solved_instance = solved_instance), solved_instance
         
 
     def run_adversary(self, schedule):
@@ -330,8 +337,8 @@ class VanillaImplementor(Optimizer):
         #n_week_days = master_schedule.get_week_length
         n_rooms = master_schedule.get_num_of_rooms()
                     
-        c_exclusion = 1  #TODO
-        c_delay = 1  #TODO
+        c_exclusion = 2  #TODO
+        c_delay = 2  #TODO
         
         # Get patients
         patients = self._task.get_patients()
@@ -393,7 +400,7 @@ class VanillaImplementor(Optimizer):
         update_dictionary = {}
 
         for i, patient in enumerate(patients):
-            update_dictionary.update({i + 1: patient.urgency})
+            update_dictionary.update({i + 1: ungency_mapper.get(patient.urgency)})
 
         instance.update({'u': update_dictionary})
 
@@ -566,8 +573,8 @@ class BudgetSet(Optimizer):
         #n_week_days = master_schedule.get_week_length
         n_rooms = master_schedule.get_num_of_rooms()
                     
-        c_exclusion = 1  #TODO
-        c_delay = 1  #TODO
+        c_exclusion = 2  #TODO
+        c_delay = 2  #TODO
         
         # Get patients
         patients = self._task.get_patients()
@@ -577,6 +584,8 @@ class BudgetSet(Optimizer):
         master_blocks = master_schedule.get_blocks()
         n_master_blocks = master_schedule.get_num_of_blocks()
         n_schedule_blocks = master_schedule.get_num_of_blocks() * self._task.num_of_weeks 
+        
+
 
         # Instance data structure initialization
         instance = {}
@@ -662,7 +671,7 @@ class BudgetSet(Optimizer):
         update_dictionary = {}
 
         for i, patient in enumerate(patients):
-            update_dictionary.update({i + 1: patient.urgency})
+            update_dictionary.update({i + 1: ungency_mapper.get(patient.urgency)})
 
         instance.update({'u': update_dictionary})
 

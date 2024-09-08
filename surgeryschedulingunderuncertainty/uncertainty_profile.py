@@ -24,8 +24,18 @@ class UncertaintyProfile(ABC):
 
     # Abstract methods
     @abstractmethod
+    def uncertainty_summary(self):
+        pass
+    
+    @abstractmethod
     def sample(self, size):
         pass
+    
+    @abstractmethod
+    def percent_point_function(self):
+        pass
+    
+    
 
 
 
@@ -60,6 +70,13 @@ class LogNormalDistribution(UncertaintyProfile):
 
 
     # Abstract methods implementation
+    
+    def uncertainty_summary(self):
+        
+        return "shape: {}, scale: {}".format(self._param_scale, self._param_s)
+
+        
+        
 
     def sample(self, size):
         """
@@ -70,6 +87,16 @@ class LogNormalDistribution(UncertaintyProfile):
         :param size: number or sampled value
         :return: np vector containg samples
         """
+        
+        # mean = self._param_scale
+        # std = self._param_s
+
+        # my_mu = np.log(mean**2/np.sqrt(mean**2 + std**2))
+        # my_sigma = np.log(1+(std**2)/(mean**2))
+
+        # return np.exp(ss.norm.rvs(loc = my_mu, scale = my_sigma, size = size))
+        
+        
 
         # Rename just to make the term convenction clearer
         mean = self._param_scale
@@ -85,9 +112,9 @@ class LogNormalDistribution(UncertaintyProfile):
         # Trasform the samples
         samples = np.exp(samples)
 
-        return samples
+        #return samples
     
-        # return ss.lognorm.rvs(std, loc=0, scale=mean, size=size, random_state=None)
+        return ss.lognorm.rvs(std, loc=0, scale=mean, size=size, random_state=None)
 
     def percent_point_function(self, probability):
         """

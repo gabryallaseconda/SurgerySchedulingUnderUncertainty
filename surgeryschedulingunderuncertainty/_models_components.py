@@ -55,7 +55,7 @@ def oneSurgeryRule(model, i): # one surgery
 #                (model.n_days + 1) * (1 - sum(model.x[b, i] for b in model.B))
                 
 def YVarDefRule(model, i): # Y variable definition # TODO: sistemare questo scempio. cosa fare se i giorni contengono un numero diverso di blocchi?
-    return model.y[i] == sum( model.day[b] * model.x[b, i] for b in model.B) + \
+    return model.y[i] >= sum( model.day[b] * model.x[b, i] for b in model.B) + \
                 (model.n_days + 1) * (1 - sum(model.x[b, i] for b in model.B))
                 
 

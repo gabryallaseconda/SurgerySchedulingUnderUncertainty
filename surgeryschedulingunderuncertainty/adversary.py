@@ -98,10 +98,7 @@ class EquiprobableVertex(Adversary):
             for patient in block.patients:
                 # Use a probabilistic tool to sample from patient duration distribution
                 sample = patient.uncertainty_profile.sample(size = 10000)  # TODO mettere nelle impostazioni generali o nel task
-                
-                #print("point2")
-                #print(patient.uncertainty_profile)
-                                
+
                 # Store the samples of each patient
                 samples.append(sample)
                 # Store the ordered samples of each patient
@@ -112,10 +109,6 @@ class EquiprobableVertex(Adversary):
                 #instance_data[instance_data.patient_num == int(patient)].duration.iloc[
                 #    0]  # iloc to get the first value of the series regardless of the index
 
-                # DEBUG
-                #if math.isnan(expected_total_duration):  # todo: this was for debug - remove
-                #    print(patient)
-                #    print(patients)
 
             #################
             # Evaluation of the overtime in data  associated to the risk
@@ -128,10 +121,6 @@ class EquiprobableVertex(Adversary):
             # This is where the check on the schedule is performed
             # from the instance_config, here is get the overtime
             
-            #print("point3")
-            #print(Z_bar, " . ", block.duration, " . ", self.task.robustness_overtime)
-            
-            #if Z_bar >= info.get('block_time') + self._task.robustness_overtime:
             if Z_bar >= block.duration + self.task.robustness_overtime:
             
                 # The control is passed only if the schedule does not respect the requirement
@@ -170,9 +159,13 @@ class EquiprobableVertex(Adversary):
                     # Place the esp in the column of the realization for the current patient
                     #instance_data.at[patient_index, column_this_realization] = eps
                     
+                    
+                    #if float(samples_ordered[pat_num][index]) - float(patient.uncertainty_profile.nominal_value):
+                    #    raise ValueError("esp is less than 0!")
+                    
                     adversary_realization.update({
                         patient.id : max(
-                            samples_ordered[pat_num][index] - patient.uncertainty_profile.nominal_value,
+                            float(samples_ordered[pat_num][index]) - float(patient.uncertainty_profile.nominal_value),
                             0
                         ) 
                     })
@@ -220,6 +213,7 @@ class EquiprobableVertex(Adversary):
 
                         # TODO: questa cosa non ha senso, non ha senso caricare un solo paziente dell'overtime totale, 
                         # si potrebbe avere la non ammissibilità solo per questo
+                        # no, non si perde la non ammissibilità, ma il paziente non verrà mai più aggiunto
                     
                     else:
                         overtime_to_allocate = overtime - patient_overtime

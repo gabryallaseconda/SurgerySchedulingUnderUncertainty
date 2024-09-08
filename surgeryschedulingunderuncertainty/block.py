@@ -150,6 +150,9 @@ class ScheduleBlock(Block):
         patients_max_waiting_days = []
         patients_delay_in_days = []
         patients_equipe = []
+        patients_surgery_day = []
+        patients_z_delay_in_days = []
+        
         
         for patient in self.patients:
             patients_ids.append(patient.id)
@@ -162,14 +165,20 @@ class ScheduleBlock(Block):
             absolute_delay = - patient.max_waiting_days + patient.days_waiting + self._days_since_beginning
             patients_delay_in_days.append(max(0, absolute_delay))
             
+            # y and z
+            patients_surgery_day.append(patient.surgery_day)
+            patients_z_delay_in_days.append(patient.delay_in_days)
+            
         
         data_dict = {
             'patients ids': patients_ids,
             'patients durations (nominal)': patients_durations,
             'patients urgencies': patients_urgencies,
             'patients max waiting days': patients_max_waiting_days,
-            'patiens delay in days' : patients_delay_in_days,
-            'patient equipe' : patients_equipe,
+            'patients delay in days' : patients_delay_in_days,
+            'patients equipe' : patients_equipe,
+            'patients surgery day' : patients_surgery_day,
+            'patients z delay in days' : patients_delay_in_days,
             
             'total duration (nominal)' : sum(patients_durations),
             

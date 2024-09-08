@@ -17,3 +17,5 @@ historical_surgery_data/
 uml/.$*
 
 notebooks/task.pickle
+
+*.pickle

@@ -29,6 +29,9 @@ class Patient():
         
         # Store all the realization produced by the adversary (only for realization-based adversary algorithms)
         self._adversary_realization = []
+        
+        self._surgery_day = -1 #TODO rimettere none
+        self._delay_in_days = -1 #TODO rimettere none
 
     def __str__(self):
         if self._uncertainty_profile:
@@ -121,3 +124,21 @@ class Patient():
     
     def add_adversary_realization(self, new:float):
         self.adversary_realization.append(new)
+        
+
+    def get_surgery_day(self):
+        return self._surgery_day
+    
+    def set_surgery_day(self, new:int):
+        self._surgery_day = new
+    
+    surgery_day= property(get_surgery_day, set_surgery_day)
+    
+    
+    def get_delay_in_days(self):
+        return self._delay_in_days
+    
+    def set_delay_in_days(self, new:int):
+        self._delay_in_days = new
+    
+    delay_in_days = property(get_delay_in_days, set_delay_in_days)
