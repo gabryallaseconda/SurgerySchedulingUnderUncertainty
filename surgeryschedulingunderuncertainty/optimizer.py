@@ -90,12 +90,12 @@ class ImplementorAdversary(Optimizer):
             self.create_instance()
             
             # Call implementor
-            print('implementor')
+            #print('implementor')
             solved_instance = self._implementor.run()
             schedule =  Schedule(task = self.task, solved_instance = solved_instance)
             
             # Call adversary
-            print('adversary')
+            #print('adversary')
             adversary = EquiprobableVertex(schedule=schedule, task = self.task)
             robustness_flag, fragile_blocks = adversary.run()
             
@@ -526,6 +526,8 @@ class BudgetSet(Optimizer):
                                                 'std':times_std})
             
             
+            flag_gamma_assigned = False
+            
             for gamma in range(2, self.task.gamma_max +1 ): # inizio da 2 perché se è 1 non posso metterlo a zero
 
                 distribution = ss.norm(loc = gamma*times_mean, scale = times_std)
@@ -538,6 +540,14 @@ class BudgetSet(Optimizer):
                     chosed_gamma = gamma + self.task.gamma_variation
                                         
                     block.robustness_budget_set.update({'gamma':chosed_gamma})
+                    
+                    flag_gamma_assigned = True
+                    
+                    break
+                
+            if not flag_gamma_assigned:
+                block.robustness_budget_set.update({'gamma':self.task.gamma_max})
+                
 
         # Now, we add the time increment specifically for each patient
         for patient in self._task.patients:

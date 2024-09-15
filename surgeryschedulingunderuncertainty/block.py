@@ -152,6 +152,7 @@ class ScheduleBlock(Block):
         patients_equipe = []
         patients_surgery_day = []
         patients_z_delay_in_days = []
+        patients_target = []
         
         
         for patient in self.patients:
@@ -160,6 +161,7 @@ class ScheduleBlock(Block):
             patients_urgencies.append(patient.urgency)
             patients_max_waiting_days.append(patient.max_waiting_days)
             patients_equipe.append(patient.equipe)
+            patients_target.append(patient.target)
 
             # Calculating delay
             absolute_delay = - patient.max_waiting_days + patient.days_waiting + self._days_since_beginning
@@ -181,6 +183,7 @@ class ScheduleBlock(Block):
             'patients z delay in days' : patients_delay_in_days,
             
             'total duration (nominal)' : sum(patients_durations),
+            'total duration (target)': sum(patients_target),
             
             'block allocated duration' : self.duration,
             

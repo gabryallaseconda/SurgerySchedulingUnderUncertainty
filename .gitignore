@@ -17,5 +17,9 @@ historical_surgery_data/
 uml/.$*
 
 notebooks/task.pickle
+notebooks/results/
 
 *.pickle
+
+
+CoseDaSistemareSE.txt

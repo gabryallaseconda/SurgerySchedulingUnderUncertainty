@@ -201,20 +201,21 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):   # TODO bisogna ges
         if requested_urgency:
             requested_urgency = int(requested_urgency) # cast in case one uses str
 
-        if (requested_equipe != None) & (requested_equipe != None):
+        if (requested_equipe is not None) and (requested_urgency is not None):
             filtered_data = self._historical_data.loc[
                 (self._historical_data['equipe'] == requested_equipe) &
                 (self._historical_data['urgency'] == requested_urgency)
             ]
-        elif requested_equipe != None:
+        elif requested_equipe is not None:
             filtered_data = self._historical_data.loc[
                 (self._historical_data['equipe'] == requested_equipe)
             ]
-        elif requested_urgency != None:
+        elif requested_urgency is not None:
             filtered_data = self._historical_data.loc[
                 (self._historical_data['urgency'] == requested_urgency)
             ]
-        else: filtered_data = self._historical_data
+        else: 
+            filtered_data = self._historical_data
 
         available_indexes = [ x for x in list(filtered_data.index) if x not in self._sampled_indexes]
         
@@ -238,6 +239,7 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):   # TODO bisogna ges
         urgency = self._historical_data.loc[patient_index, 'urgency']
         
         days_waiting = self._historical_data.loc[patient_index, 'days_waiting']
+        
 
         return Patient(id=id, 
                        equipe=equipe, 
@@ -246,6 +248,7 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):   # TODO bisogna ges
                        features=features, 
                        target=target, 
                        uncertainty_profile=None)
+                       
     
 
     def provide_patients(self, 
@@ -300,7 +303,7 @@ class PatientsFromHistoricalDataProvider(PatientsProvider):   # TODO bisogna ges
         return self.provide_patients(quantity = quantity, 
                                      equipe_profile = equipe_profile, 
                                      urgency_profile = urgency_profile, 
-                                     include_target = False)
+                                     include_target = True)
         
 
     def provide_patient_training(self, 

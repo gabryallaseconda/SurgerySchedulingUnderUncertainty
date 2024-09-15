@@ -1,6 +1,8 @@
 # Packages
 import pyomo.environ as pyo
 
+BIGM = 100000
+
 
 # Objective function
 #def ObjRule_standard(self):
@@ -34,7 +36,7 @@ def capacityRule(model, b):
     return sum(model.x[b, i] * model.t[i] for i in model.I) <= model.g[b]
 
 def capacityOvertimeRule(model, b, k):
-    return sum(model.x[b, i] * (model.t[i] + model.eps[i, k]) for i in model.I) <= model.g[b]
+    return sum(model.x[b, i] * (model.t[i] + model.eps[i, k]) for i in model.I) <= model.g[b]  + BIGM * (1 - model.h[b])
 
 def compatibilityRule(model, b, i):
     return model.x[b, i] <= model.a[b, i]
@@ -94,3 +96,9 @@ def dualDefinitionRule(model, b, i):
 
 
 
+def HVarDefFirst(model, b): # new
+    return sum(model.x[b, i] for i in model.I) <= 1 + BIGM * model.h[b]
+
+
+def HVarDefSecond(model, b): # new
+    return sum(model.x[b, i] for i in model.I) >= 2 - BIGM * (1 - model.h[b])

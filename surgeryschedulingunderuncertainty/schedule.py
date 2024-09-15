@@ -16,6 +16,7 @@ class Schedule(ABC):
         self._task = task
         self._blocks = []
         self._creation_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self._objective_value= solved_instance.obj()
                
         num_of_blocks = task.master_schedule.get_num_of_blocks()
         num_of_patients = task.num_of_patients
@@ -51,6 +52,7 @@ class Schedule(ABC):
                     order_in_day= master_block.order_in_day, 
                     order_in_week= week,  # convention 0s and 1s in python
                     order_in_schedule=block_index, # on models is block_index+1 
+                    
                 )
                 
                 # We have to look through all the patients indexes                
@@ -77,9 +79,10 @@ class Schedule(ABC):
         data_dictionary = {
             'task description': self._task.name,
             'creation date': self._creation_date,
+            'objective function value':self._objective_value,
             'number of blocks': len(self._blocks),
             'blocks':[],
-            'patients_not_included':[]
+            'patients_not_included':[],
         }
         
         for block in self._blocks:

@@ -76,10 +76,7 @@ class ReportForImplementorAdversary(Report):
             raise ValueError("Reporting can be ended only once.")
         
         self._end_time = datetime.now()
-        print(self._end_time)
-        print(self._start_time)
         self._total_time = (self._end_time - self._start_time).total_seconds() / 60
-        print(self._total_time)
         
     def start_iterations_reporting(self):
         if self._start_iterations_time is not None:

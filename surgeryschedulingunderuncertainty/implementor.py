@@ -21,7 +21,9 @@ from ._models_components import (
     assignmentExistRule,
     chanceConstraintRule,
     dualCapacityRule,
-    dualDefinitionRule
+    dualDefinitionRule,
+    HVarDefFirst,
+    HVarDefSecond
     
 )
 
@@ -106,6 +108,7 @@ class StandardImplementor(Implementor):
         self._model.x = pyo.Var(self._model.B, self._model.I, within=pyo.Binary)
         self._model.y = pyo.Var(self._model.I, within=pyo.NonNegativeReals)
         self._model.z = pyo.Var(self._model.I, within=pyo.NonNegativeReals)
+        self._model.h = pyo.Var(self._model.B, within=pyo.Binary)  # new 
 
         # Objective function
         self._model.obj = pyo.Objective(rule=ObjRule_standard, sense=pyo.minimize)
@@ -114,6 +117,8 @@ class StandardImplementor(Implementor):
         self._model.delayDetector = pyo.Constraint(self._model.I, rule=delayDetectorRule)
         self._model.oneSurgery = pyo.Constraint(self._model.I, rule=oneSurgeryRule)
         self._model.YVarDef = pyo.Constraint(self._model.I, rule=YVarDefRule)
+        self._model.HVarDefFirst = pyo.Constraint(self._model.B, rule=HVarDefFirst)
+        self._model.HVarDefSecond = pyo.Constraint(self._model.B, rule=HVarDefSecond)
         
         self._model.capacity = pyo.Constraint(self._model.B, rule=capacityRule)
         self._model.capacityOvertime = pyo.Constraint(self._model.B, self._model.K, rule=capacityOvertimeRule)
