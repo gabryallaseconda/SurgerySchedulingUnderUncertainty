@@ -83,6 +83,8 @@ class ImplementorAdversary(Optimizer):
         self._report.start_reporting()
         self._report.start_iterations_reporting()
         
+        objective_value_initial = None
+        
         # Main implementor adversary loop
         for _ in range(max_loops):
             
@@ -92,7 +94,11 @@ class ImplementorAdversary(Optimizer):
             # Call implementor
             #print('implementor')
             solved_instance = self._implementor.run()
-            schedule =  Schedule(task = self.task, solved_instance = solved_instance)
+            
+            if objective_value_initial is None:
+                objective_value_initial = solved_instance.obj()
+            
+            schedule =  Schedule(task = self.task, solved_instance = solved_instance, objective_value_initial=objective_value_initial)
             
             # Call adversary
             #print('adversary')

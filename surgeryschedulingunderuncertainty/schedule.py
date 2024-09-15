@@ -11,12 +11,13 @@ from .block import ScheduleBlock
 
 class Schedule(ABC):
 
-    def __init__(self, task:Task, solved_instance):
+    def __init__(self, task:Task, solved_instance, objective_value_initial = None):
         
         self._task = task
         self._blocks = []
         self._creation_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._objective_value= solved_instance.obj()
+        self._objective_value_initial = objective_value_initial
                
         num_of_blocks = task.master_schedule.get_num_of_blocks()
         num_of_patients = task.num_of_patients
@@ -79,7 +80,8 @@ class Schedule(ABC):
         data_dictionary = {
             'task description': self._task.name,
             'creation date': self._creation_date,
-            'objective function value':self._objective_value,
+            'objective function value (final)':self._objective_value,
+            'objective function value (initial)' : self._objective_value_initial,
             'number of blocks': len(self._blocks),
             'blocks':[],
             'patients_not_included':[],
