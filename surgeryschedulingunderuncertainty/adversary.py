@@ -170,6 +170,8 @@ class EquiprobableVertex(Adversary):
                         ) 
                     })
                     
+                #print(adversary_realization)
+                    
                 # Save the adversary realization
                 self.task.add_adversary_realization(adversary_realization=adversary_realization)
                                         

@@ -95,7 +95,10 @@ class ImplementorAdversary(Optimizer):
             #print('implementor')
             solved_instance = self._implementor.run()
             
+            #print(solved_instance.obj())
+            
             if objective_value_initial is None:
+                #print("object value initial variable is updated here")
                 objective_value_initial = solved_instance.obj()
             
             schedule =  Schedule(task = self.task, solved_instance = solved_instance, objective_value_initial=objective_value_initial)
@@ -205,7 +208,7 @@ class ImplementorAdversary(Optimizer):
 
         update_dictionary = {}
 
-        for i in range(n_pats):
+        for i, patient in enumerate(patients):
             update_dictionary.update({i + 1: patient.max_waiting_days})
 
         instance.update({'l': update_dictionary})
@@ -219,12 +222,13 @@ class ImplementorAdversary(Optimizer):
             update_dictionary = {}
             
             for k in range(self.task.num_adversary_realizations):
-                for i in range(n_pats):
+                for i, patient in enumerate(patients):
                     update_dictionary.update(
                         {(i+1, k+1): 
                             patient.adversary_realization[k]}
                     )
 
+                        
             instance.update({'eps': update_dictionary})
             
         # Parameter day
@@ -704,7 +708,7 @@ class BudgetSet(Optimizer):
 
         update_dictionary = {}
 
-        for i in range(n_pats):
+        for i, patient in enumerate(patients):
             update_dictionary.update({i + 1: patient.max_waiting_days})
 
         instance.update({'l': update_dictionary})

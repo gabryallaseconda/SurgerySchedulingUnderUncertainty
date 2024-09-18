@@ -60,7 +60,9 @@ class Implementor(ABC):
         
         path = '/Users/gabrielegabrielli/Documents'
         filename = 'highs_log.txt'
-        self._solver.options['LogFile'] = path + filename
+        #self._solver.options['LogFile'] = path + filename
+        self._solver.options['time_limit'] = 20*60
+
 
         # Solver launching
         solver_result = self._solver.solve(self._instance, tee=False)

@@ -110,13 +110,17 @@ class Task():
 
     def get_robustness_risk(self):
         return self._robustness_risk
+    def set_robustness_risk(self, new:float):
+        self._robustness_risk = new
     
-    robustness_risk = property(get_robustness_risk)
+    robustness_risk = property(get_robustness_risk, set_robustness_risk)
 
     def get_robustness_overtime(self):
         return self._robustness_overtime
+    def set_robustness_overtime(self, new:float):
+        self._robustness_overtime = new
     
-    robustness_overtime = property(get_robustness_overtime)
+    robustness_overtime = property(get_robustness_overtime, set_robustness_overtime)
 
 
     def get_urgency_to_max_waiting_days(self):
@@ -185,7 +189,7 @@ class Task():
     num_adversary_realizations = property(get_num_adversary_realizations)
 
 
-    def add_adversary_realization(self, adversary_realization: dict):
+    def add_adversary_realization(self, adversary_realization: dict):        
         patients_ids = adversary_realization.keys()
         
         # Loop on the patients inside the task

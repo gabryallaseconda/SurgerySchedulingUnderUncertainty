@@ -105,7 +105,7 @@ class Patient():
     adversary_realization = property(get_adversary_realization, set_adversary_realization)
     
     def add_adversary_realization(self, new:float):
-        self.adversary_realization.append(new)
+        self._adversary_realization.append(new)
         
 
     def get_surgery_day(self):
