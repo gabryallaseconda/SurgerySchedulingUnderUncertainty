@@ -102,23 +102,23 @@ class LogNormalDistribution(UncertaintyProfile):
         mean = self._param_scale
         std = self._param_s
 
-        # Transform the parameters
-        my_mu = np.log(mean**2/np.sqrt(mean**2 + std**2))
-        my_sigma = np.log(1+(std**2)/(mean**2))
+        # # Transform the parameters
+        # my_mu = np.log(mean**2/np.sqrt(mean**2 + std**2))
+        # my_sigma = np.log(1+(std**2)/(mean**2))
 
-        # Sampling from normal 
-        samples = ss.norm.rvs(loc = my_mu, scale = my_sigma, size = size)
+        # # Sampling from normal 
+        # samples = ss.norm.rvs(loc = my_mu, scale = my_sigma, size = size)
 
-        # Trasform the samples
-        samples = np.exp(samples)
+        # # Trasform the samples
+        # samples = np.exp(samples)
 
-        #return samples
+        # #return samples
     
         return ss.lognorm.rvs(std, loc=0, scale=mean, size=size, random_state=None)
 
     def percent_point_function(self, probability):
         """
-        Using this method for the chans constraints implementor
+        Using this method for the chance constraints implementor
 
         """
         # SHIT
@@ -128,17 +128,21 @@ class LogNormalDistribution(UncertaintyProfile):
         mean = self._param_scale
         std = self._param_s
 
-        # Transform the parameters
-        my_mu = np.log(mean**2/np.sqrt(mean**2 + std**2))
-        my_sigma = np.log(1+(std**2)/(mean**2))
+        # # Transform the parameters
+        # my_mu = np.log(mean**2/np.sqrt(mean**2 + std**2))
+        # my_sigma = np.log(1+(std**2)/(mean**2))
 
-        # Get the percent point from normal 
-        value = ss.norm.ppf(q = probability, loc = my_mu, scale = my_sigma)
+        # # Get the percent point from normal 
+        # value = ss.norm.ppf(q = probability, loc = my_mu, scale = my_sigma)
 
-        # Trasform the percent point
-        value = np.exp(value)
+        # # Trasform the percent point
+        # value = np.exp(value)
 
-        return value
+        # return value
+        
+        return ss.lognorm.ppf(q = probability, s= std, loc=0, scale=mean)
+    
+
         
         
 

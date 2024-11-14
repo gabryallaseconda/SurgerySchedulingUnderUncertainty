@@ -562,7 +562,7 @@ class BudgetSet(Optimizer):
         # Now, we add the time increment specifically for each patient
         for patient in self._task.patients:
             percentile = patient.uncertainty_profile.percent_point_function(1-self.task.robustness_risk)  
-            time_increment = percentile - patient.uncertainty_profile.nominal_value
+            time_increment = max(0,percentile - patient.uncertainty_profile.nominal_value) # added this max to push the value to positive 
             patient.uncertainty_profile.budget_set_time_increment = time_increment
              
                         

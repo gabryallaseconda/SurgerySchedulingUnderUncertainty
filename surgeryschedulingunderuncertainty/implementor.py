@@ -2,6 +2,7 @@
 
 # Python STL
 from abc import ABC, abstractmethod
+from datetime import datetime # used to name highs' logs
 
 # Packages
 import pyomo.environ as pyo
@@ -26,6 +27,8 @@ from ._models_components import (
     HVarDefSecond
     
 )
+
+
 
 
 
@@ -58,11 +61,15 @@ class Implementor(ABC):
         # Solver configuration
         self._solver = pyo.SolverFactory('appsi_highs')
         
-        path = '/Users/gabrielegabrielli/Documents'
-        filename = 'highs_log.txt'
+        #path = '/Users/gabrielegabrielli/Documents'
+        #filename = 'highs_log.txt'
+        path = "/Users/gabrielegabrielli/Documents/SurgerySchedulingUnderUncertainty/notebooks/highs_logs/"
+        filename = str(self._task.name) + "_" + str(datetime.now()) + ".txt"
         #self._solver.options['LogFile'] = path + filename
-        self._solver.options['time_limit'] = 20*60
-
+        self._solver.options['log_file'] = path + filename
+        self._solver.options['time_limit'] = 30*60
+        self._solver.options['random_seed'] = 10
+        
 
         # Solver launching
         solver_result = self._solver.solve(self._instance, tee=False)
